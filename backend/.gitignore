@@ -1,0 +1,4 @@
+node_modules/
+db/billetterie.db
+db/billetterie.db.lock
+.env

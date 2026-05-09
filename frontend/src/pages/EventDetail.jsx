@@ -1,0 +1,266 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
+import toast from 'react-hot-toast'
+
+const TYPE_GRADIENT = {
+  gala: 'from-purple-700 to-purple-900',
+  soiree: 'from-indigo-600 to-purple-800',
+  universite: 'from-blue-600 to-indigo-800',
+  concert: 'from-rose-600 to-pink-800',
+  autre: 'from-gray-600 to-gray-900',
+}
+const TYPE_EMOJI = { gala: '✨', soiree: '🌙', universite: '🎓', concert: '🎵', autre: '🎉' }
+
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('fr-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+export default function EventDetail() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const [event, setEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [ticketType, setTicketType] = useState('standard')
+  const [quantity, setQuantity] = useState(1)
+  const [purchasing, setPurchasing] = useState(false)
+
+  useEffect(() => {
+    api.get(`/events/${id}`).then(r => setEvent(r.data)).catch(() => navigate('/events')).finally(() => setLoading(false))
+  }, [id, navigate])
+
+  const available = event ? event.capacity - event.tickets_sold : 0
+  const unitPrice = event ? (ticketType === 'vip' ? event.price_vip : event.price_standard) : 0
+  const total = unitPrice * quantity
+
+  const purchase = async () => {
+    if (!isAuthenticated) {
+      toast.error('Connectez-vous pour réserver')
+      navigate('/login')
+      return
+    }
+    setPurchasing(true)
+    try {
+      const res = await api.post('/tickets/purchase', { event_id: id, ticket_type: ticketType, quantity })
+      const pts = res.data.points_earned || 0
+      const bonusMsg = res.data.bonus_first ? ' (+100 pts bonus bienvenue 🎁)' : res.data.bonus_streak ? ' (+150 pts bonus régularité 🔥)' : ''
+      toast.success(`🎉 Réservé ! +${pts} BilletCoins gagnés${bonusMsg}`, { duration: 4000 })
+      navigate('/dashboard')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la réservation')
+    } finally {
+      setPurchasing(false)
+    }
+  }
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+  if (!event) return null
+
+  const gradient = event.university_color
+    ? `background: linear-gradient(135deg, ${event.university_color}dd, ${event.university_color}55)`
+    : undefined
+  const gradientClass = !event.university_color ? TYPE_GRADIENT[event.type] || TYPE_GRADIENT.autre : ''
+
+  return (
+    <div>
+      {/* ── Hero ── */}
+      <div className="relative min-h-[420px] flex items-end overflow-hidden text-white">
+
+        {/* Background: real photo OR gradient */}
+        {event.image_url ? (
+          <img
+            src={event.image_url}
+            alt={event.title}
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{ filter: 'brightness(0.75)' }}
+          />
+        ) : (
+          <div
+            className={`absolute inset-0 ${!gradient ? `bg-gradient-to-br ${gradientClass}` : ''}`}
+            style={gradient ? { backgroundImage: `linear-gradient(135deg, ${event.university_color}cc, ${event.university_color}77)` } : {}}
+          >
+            <div className="absolute inset-0 flex items-center justify-center text-[22rem] opacity-10 select-none pointer-events-none">
+              {TYPE_EMOJI[event.type] || '🎉'}
+            </div>
+          </div>
+        )}
+
+        {/* Gradient scrim — makes text readable over any photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+        {/* Content */}
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-24">
+          <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 backdrop-blur-sm">
+            ← Retour aux événements
+          </Link>
+
+          {event.university_name && (
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-sm mb-4">
+              🎓 {event.university_name}
+            </div>
+          )}
+
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-5 leading-tight drop-shadow-lg">
+            {event.title}
+          </h1>
+
+          <div className="flex flex-wrap gap-3">
+            {[
+              { icon: '📅', text: `${formatDate(event.date)} à ${event.time}` },
+              { icon: '📍', text: `${event.venue}, ${event.city}` },
+              ...(event.dress_code ? [{ icon: '👔', text: event.dress_code }] : []),
+            ].map(({ icon, text }) => (
+              <span key={text} className="inline-flex items-center gap-1.5 text-sm bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-white/90">
+                {icon} {text}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid lg:grid-cols-3 gap-8">
+        {/* Left: Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Description */}
+          <div className="card p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-3">À propos de cet événement</h2>
+            <p className="text-gray-600 leading-relaxed">{event.description}</p>
+          </div>
+
+          {/* Info grid */}
+          <div className="card p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Informations pratiques</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: '📅', label: 'Date', value: formatDate(event.date) },
+                { icon: '🕐', label: 'Heure', value: event.time },
+                { icon: '📍', label: 'Lieu', value: event.venue },
+                { icon: '🏙️', label: 'Ville', value: event.city },
+                { icon: '👔', label: 'Dress code', value: event.dress_code || '—' },
+                { icon: '🎫', label: 'Places restantes', value: `${available} / ${event.capacity}` },
+              ].map(({ icon, label, value }) => (
+                <div key={label} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                  <span className="text-xl">{icon}</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
+                    <p className="font-semibold text-gray-800 capitalize">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* University info */}
+          {event.university_name && (
+            <div className="card p-6 border-l-4" style={{ borderColor: event.university_color || '#7C3AED' }}>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">🎓 {event.university_name}</h2>
+              {event.university_description && (
+                <p className="text-gray-600 text-sm leading-relaxed">{event.university_description}</p>
+              )}
+              {event.student_count && (
+                <p className="text-purple-600 font-semibold mt-2 text-sm">
+                  {(event.student_count / 1000).toFixed(0)}K étudiants inscrits
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Ticket Purchase */}
+        <div className="lg:col-span-1">
+          <div className="card p-6 sticky top-20">
+            <h2 className="text-xl font-bold text-gray-900 mb-5">Réserver des billets</h2>
+
+            {available <= 0 ? (
+              <div className="text-center py-8">
+                <div className="text-5xl mb-3">😔</div>
+                <p className="font-bold text-gray-700">Événement complet</p>
+                <p className="text-gray-400 text-sm mt-1">Il n'y a plus de places disponibles.</p>
+              </div>
+            ) : (
+              <>
+                {/* Ticket type */}
+                <div className="space-y-3 mb-5">
+                  <label className="label">Type de billet</label>
+                  {[
+                    { value: 'standard', label: 'Standard', price: event.price_standard, desc: 'Accès à l\'événement' },
+                    ...(event.price_vip > 0 ? [{ value: 'vip', label: '⭐ VIP', price: event.price_vip, desc: 'Accès prioritaire + avantages' }] : []),
+                  ].map(opt => (
+                    <label key={opt.value} className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${ticketType === opt.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'}`}>
+                      <input type="radio" name="ticketType" value={opt.value} checked={ticketType === opt.value}
+                        onChange={e => setTicketType(e.target.value)} className="accent-purple-600" />
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-800">{opt.label}</p>
+                        <p className="text-xs text-gray-400">{opt.desc}</p>
+                      </div>
+                      <span className="font-bold text-purple-700">{opt.price} MAD</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Quantity */}
+                <div className="mb-5">
+                  <label className="label">Nombre de billets</label>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      className="w-10 h-10 rounded-xl border border-gray-300 font-bold text-lg hover:bg-gray-50 transition-colors">−</button>
+                    <span className="w-12 text-center font-bold text-xl">{quantity}</span>
+                    <button onClick={() => setQuantity(q => Math.min(available, q + 1))}
+                      className="w-10 h-10 rounded-xl border border-gray-300 font-bold text-lg hover:bg-gray-50 transition-colors">+</button>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="bg-purple-50 rounded-xl p-4 mb-5">
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>{quantity} × {unitPrice} MAD</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-800">Total</span>
+                    <span className="text-2xl font-extrabold text-purple-700">{total} MAD</span>
+                  </div>
+                </div>
+
+                {/* BilletCoins preview */}
+                <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-4 py-2 mb-4">
+                  <span className="text-lg">💎</span>
+                  <div className="flex-1">
+                    <p className="text-xs text-purple-600 font-semibold">Vous gagnerez</p>
+                    <p className="text-purple-800 font-extrabold">
+                      +{ticketType === 'vip' ? Math.round(unitPrice * quantity * 1.5) : Math.round(unitPrice * quantity)} BilletCoins
+                    </p>
+                  </div>
+                  <Link to="/loyalty" className="text-xs text-purple-500 underline">Voir mes points</Link>
+                </div>
+
+                <button onClick={purchase} disabled={purchasing}
+                  className="btn-primary w-full text-center justify-center">
+                  {purchasing ? 'Réservation en cours...' : isAuthenticated ? '🎫 Réserver maintenant' : '🔑 Se connecter pour réserver'}
+                </button>
+
+                {!isAuthenticated && (
+                  <p className="text-center text-xs text-gray-400 mt-3">
+                    <Link to="/login" className="text-purple-600">Connexion</Link> ou{' '}
+                    <Link to="/register" className="text-purple-600">inscription</Link> requise
+                  </p>
+                )}
+
+                {available <= 20 && (
+                  <p className="text-center text-sm text-red-500 mt-3 font-medium">
+                    ⚠️ Plus que {available} places disponibles !
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
