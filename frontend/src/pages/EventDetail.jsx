@@ -5,11 +5,11 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 const TYPE_GRADIENT = {
-  gala: 'from-purple-700 to-purple-900',
-  soiree: 'from-indigo-600 to-purple-800',
-  universite: 'from-blue-600 to-indigo-800',
-  concert: 'from-rose-600 to-pink-800',
-  autre: 'from-gray-600 to-gray-900',
+  gala:      'from-purple-700 to-purple-900',
+  soiree:    'from-indigo-600 to-purple-800',
+  universite:'from-blue-600 to-indigo-800',
+  concert:   'from-rose-600 to-pink-800',
+  autre:     'from-gray-600 to-gray-900',
 }
 const TYPE_EMOJI = { gala: '✨', soiree: '🌙', universite: '🎓', concert: '🎵', autre: '🎉' }
 
@@ -46,7 +46,7 @@ export default function EventDetail() {
       const res = await api.post('/tickets/purchase', { event_id: id, ticket_type: ticketType, quantity })
       const pts = res.data.points_earned || 0
       const bonusMsg = res.data.bonus_first ? ' (+100 pts bonus bienvenue 🎁)' : res.data.bonus_streak ? ' (+150 pts bonus régularité 🔥)' : ''
-      toast.success(`🎉 Réservé ! +${pts} BilletCoins gagnés${bonusMsg}`, { duration: 4000 })
+      toast.success(`🎉 Réservé ! +${pts} FayasCoins gagnés${bonusMsg}`, { duration: 4000 })
       navigate('/dashboard')
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la réservation')
@@ -56,7 +56,7 @@ export default function EventDetail() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -68,7 +68,7 @@ export default function EventDetail() {
   const gradientClass = !event.university_color ? TYPE_GRADIENT[event.type] || TYPE_GRADIENT.autre : ''
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* ── Hero ── */}
       <div className="relative min-h-[420px] flex items-end overflow-hidden text-white">
 
@@ -95,8 +95,8 @@ export default function EventDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         {/* Content */}
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-24">
-          <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 backdrop-blur-sm">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-24 animate-fade-up">
+          <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
             ← Retour aux événements
           </Link>
 
@@ -129,13 +129,13 @@ export default function EventDetail() {
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
           <div className="card p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-3">À propos de cet événement</h2>
-            <p className="text-gray-600 leading-relaxed">{event.description}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">À propos de cet événement</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{event.description}</p>
           </div>
 
           {/* Info grid */}
           <div className="card p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Informations pratiques</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Informations pratiques</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: '📅', label: 'Date', value: formatDate(event.date) },
@@ -145,11 +145,11 @@ export default function EventDetail() {
                 { icon: '👔', label: 'Dress code', value: event.dress_code || '—' },
                 { icon: '🎫', label: 'Places restantes', value: `${available} / ${event.capacity}` },
               ].map(({ icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                <div key={label} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <span className="text-xl">{icon}</span>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
-                    <p className="font-semibold text-gray-800 capitalize">{value}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">{label}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200 capitalize">{value}</p>
                   </div>
                 </div>
               ))}
@@ -159,12 +159,12 @@ export default function EventDetail() {
           {/* University info */}
           {event.university_name && (
             <div className="card p-6 border-l-4" style={{ borderColor: event.university_color || '#7C3AED' }}>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">🎓 {event.university_name}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">🎓 {event.university_name}</h2>
               {event.university_description && (
-                <p className="text-gray-600 text-sm leading-relaxed">{event.university_description}</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{event.university_description}</p>
               )}
               {event.student_count && (
-                <p className="text-purple-600 font-semibold mt-2 text-sm">
+                <p className="text-purple-600 dark:text-purple-400 font-semibold mt-2 text-sm">
                   {(event.student_count / 1000).toFixed(0)}K étudiants inscrits
                 </p>
               )}
@@ -175,13 +175,13 @@ export default function EventDetail() {
         {/* Right: Ticket Purchase */}
         <div className="lg:col-span-1">
           <div className="card p-6 sticky top-20">
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Réserver des billets</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Réserver des billets</h2>
 
             {available <= 0 ? (
               <div className="text-center py-8">
                 <div className="text-5xl mb-3">😔</div>
-                <p className="font-bold text-gray-700">Événement complet</p>
-                <p className="text-gray-400 text-sm mt-1">Il n'y a plus de places disponibles.</p>
+                <p className="font-bold text-gray-700 dark:text-gray-300">Événement complet</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Il n'y a plus de places disponibles.</p>
               </div>
             ) : (
               <>
@@ -192,14 +192,19 @@ export default function EventDetail() {
                     { value: 'standard', label: 'Standard', price: event.price_standard, desc: 'Accès à l\'événement' },
                     ...(event.price_vip > 0 ? [{ value: 'vip', label: '⭐ VIP', price: event.price_vip, desc: 'Accès prioritaire + avantages' }] : []),
                   ].map(opt => (
-                    <label key={opt.value} className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${ticketType === opt.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'}`}>
+                    <label key={opt.value}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        ticketType === opt.value
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700'
+                      }`}>
                       <input type="radio" name="ticketType" value={opt.value} checked={ticketType === opt.value}
                         onChange={e => setTicketType(e.target.value)} className="accent-purple-600" />
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-800">{opt.label}</p>
-                        <p className="text-xs text-gray-400">{opt.desc}</p>
+                        <p className="font-semibold text-gray-800 dark:text-gray-200">{opt.label}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{opt.desc}</p>
                       </div>
-                      <span className="font-bold text-purple-700">{opt.price} MAD</span>
+                      <span className="font-bold text-purple-700 dark:text-purple-400">{opt.price} MAD</span>
                     </label>
                   ))}
                 </div>
@@ -209,34 +214,34 @@ export default function EventDetail() {
                   <label className="label">Nombre de billets</label>
                   <div className="flex items-center gap-3">
                     <button onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      className="w-10 h-10 rounded-xl border border-gray-300 font-bold text-lg hover:bg-gray-50 transition-colors">−</button>
-                    <span className="w-12 text-center font-bold text-xl">{quantity}</span>
+                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-gray-700 font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300">−</button>
+                    <span className="w-12 text-center font-bold text-xl text-gray-900 dark:text-white">{quantity}</span>
                     <button onClick={() => setQuantity(q => Math.min(available, q + 1))}
-                      className="w-10 h-10 rounded-xl border border-gray-300 font-bold text-lg hover:bg-gray-50 transition-colors">+</button>
+                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-gray-700 font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300">+</button>
                   </div>
                 </div>
 
                 {/* Total */}
-                <div className="bg-purple-50 rounded-xl p-4 mb-5">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl p-4 mb-5">
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
                     <span>{quantity} × {unitPrice} MAD</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-800">Total</span>
-                    <span className="text-2xl font-extrabold text-purple-700">{total} MAD</span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200">Total</span>
+                    <span className="text-2xl font-extrabold text-purple-700 dark:text-purple-400">{total} MAD</span>
                   </div>
                 </div>
 
-                {/* BilletCoins preview */}
-                <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-4 py-2 mb-4">
+                {/* FayasCoins preview */}
+                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl px-4 py-2 mb-4">
                   <span className="text-lg">💎</span>
                   <div className="flex-1">
-                    <p className="text-xs text-purple-600 font-semibold">Vous gagnerez</p>
-                    <p className="text-purple-800 font-extrabold">
-                      +{ticketType === 'vip' ? Math.round(unitPrice * quantity * 1.5) : Math.round(unitPrice * quantity)} BilletCoins
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">Vous gagnerez</p>
+                    <p className="text-purple-800 dark:text-purple-300 font-extrabold">
+                      +{ticketType === 'vip' ? Math.round(unitPrice * quantity * 1.5) : Math.round(unitPrice * quantity)} FayasCoins
                     </p>
                   </div>
-                  <Link to="/loyalty" className="text-xs text-purple-500 underline">Voir mes points</Link>
+                  <Link to="/loyalty" className="text-xs text-purple-500 dark:text-purple-400 underline">Voir mes points</Link>
                 </div>
 
                 <button onClick={purchase} disabled={purchasing}
@@ -245,14 +250,14 @@ export default function EventDetail() {
                 </button>
 
                 {!isAuthenticated && (
-                  <p className="text-center text-xs text-gray-400 mt-3">
-                    <Link to="/login" className="text-purple-600">Connexion</Link> ou{' '}
-                    <Link to="/register" className="text-purple-600">inscription</Link> requise
+                  <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-3">
+                    <Link to="/login" className="text-purple-600 dark:text-purple-400">Connexion</Link> ou{' '}
+                    <Link to="/register" className="text-purple-600 dark:text-purple-400">inscription</Link> requise
                   </p>
                 )}
 
                 {available <= 20 && (
-                  <p className="text-center text-sm text-red-500 mt-3 font-medium">
+                  <p className="text-center text-sm text-red-500 dark:text-red-400 mt-3 font-medium">
                     ⚠️ Plus que {available} places disponibles !
                   </p>
                 )}

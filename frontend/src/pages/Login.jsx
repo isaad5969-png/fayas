@@ -29,17 +29,19 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 dark:from-gray-950 to-white dark:to-gray-900 flex items-center justify-center px-4 py-12 transition-colors duration-300">
+      <div className="w-full max-w-md animate-fade-up">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">🎫</div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Connexion</h1>
-          <p className="text-gray-500 mt-2">Accédez à votre espace BilletterieMa</p>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center shadow-lg shadow-purple-200 dark:shadow-purple-900/40">
+            <span className="text-2xl">🎫</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Connexion</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Accédez à votre espace Fayas</p>
         </div>
 
         <div className="card p-8">
           {/* Demo hint */}
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-6 text-sm text-purple-700">
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-3 mb-6 text-sm text-purple-700 dark:text-purple-300">
             <strong>Démo admin:</strong> admin@billetterie.ma / Admin123!
           </div>
 
@@ -65,9 +67,9 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-6">
             Pas encore de compte ?{' '}
-            <Link to="/register" className="text-purple-600 font-semibold hover:text-purple-700">
+            <Link to="/register" className="text-purple-600 dark:text-purple-400 font-semibold hover:text-purple-700 dark:hover:text-purple-300">
               S'inscrire gratuitement
             </Link>
           </p>

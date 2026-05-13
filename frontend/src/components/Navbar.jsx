@@ -1,14 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { Icon } from './Icons'
 import toast from 'react-hot-toast'
 
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { isDark, toggle } = useTheme()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropOpen, setDropOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  /* ── Detect scroll to shrink/blur navbar ── */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -18,49 +28,76 @@ export default function Navbar() {
     setMenuOpen(false)
   }
 
-  const activeClass  = 'text-purple-600 font-semibold'
-  const defaultClass = 'text-gray-600 hover:text-purple-600 font-medium transition-colors'
+  const activeClass  = 'text-purple-600 dark:text-purple-400 font-semibold relative after:absolute after:bottom-[-2px] after:left-0 after:w-full after:h-0.5 after:bg-purple-600 after:rounded-full'
+  const defaultClass = 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium transition-colors relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-purple-600 after:rounded-full after:transition-all after:duration-300 hover:after:w-full'
   const navLink = ({ isActive }) => isActive ? activeClass : defaultClass
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <nav className={`
+      sticky top-0 z-50 transition-all duration-300
+      ${scrolled
+        ? 'bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl shadow-lg shadow-black/5 dark:shadow-black/30 border-b border-gray-100/80 dark:border-gray-800/80'
+        : 'bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800'}
+    `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'h-14' : 'h-16'}`}>
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 font-extrabold text-lg group">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-800
                             flex items-center justify-center shadow-sm
-                            group-hover:shadow-purple-200 group-hover:shadow-md transition-shadow">
+                            group-hover:shadow-purple-300 dark:group-hover:shadow-purple-900
+                            group-hover:shadow-md transition-all duration-300
+                            group-hover:scale-110">
               <Icon name="ticket" className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
-            <span className="bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent">
-              BilletterieMa
+            <span className="bg-gradient-to-r from-purple-700 to-purple-500 dark:from-purple-400 dark:to-purple-300 bg-clip-text text-transparent">
+              Fayas
             </span>
           </Link>
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-7">
-            <NavLink to="/"            className={navLink} end>Accueil</NavLink>
-            <NavLink to="/events"      className={navLink}>Événements</NavLink>
-            <NavLink to="/universities"className={navLink}>Universités</NavLink>
+            <NavLink to="/"             className={navLink} end>Accueil</NavLink>
+            <NavLink to="/events"       className={navLink}>Événements</NavLink>
+            <NavLink to="/universities" className={navLink}>Universités</NavLink>
           </div>
 
-          {/* Desktop auth */}
+          {/* Desktop auth + theme toggle */}
           <div className="hidden md:flex items-center gap-3">
+
+            {/* 🌙 / ☀️ Theme toggle */}
+            <button
+              onClick={toggle}
+              aria-label="Basculer le thème"
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center
+                         bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-900/40
+                         text-gray-500 dark:text-yellow-300
+                         transition-all duration-200 overflow-hidden group"
+            >
+              <span key={isDark ? 'sun' : 'moon'} className="animate-theme-swap">
+                <Icon
+                  name={isDark ? 'sun' : 'moon'}
+                  className="w-4 h-4"
+                  strokeWidth={2}
+                />
+              </span>
+            </button>
+
             {isAuthenticated ? (
               <div className="relative">
                 <button
                   onClick={() => setDropOpen(v => !v)}
-                  className="flex items-center gap-2.5 bg-gray-50 hover:bg-purple-50
-                             border border-gray-200 hover:border-purple-200
+                  className="flex items-center gap-2.5
+                             bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-gray-700
+                             border border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700
                              px-3 py-2 rounded-xl transition-all duration-150"
                 >
                   <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center
                                   text-white font-bold text-xs shadow-sm">
                     {user?.name?.[0]?.toUpperCase()}
                   </div>
-                  <span className="font-medium text-gray-800 text-sm">
+                  <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">
                     {user?.name?.split(' ')[0]}
                   </span>
                   <Icon name="filter"
@@ -70,38 +107,38 @@ export default function Navbar() {
 
                 {dropOpen && (
                   <>
-                    {/* Backdrop */}
                     <div className="fixed inset-0 z-40" onClick={() => setDropOpen(false)} />
-                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl
-                                    border border-gray-100 py-1.5 z-50 animate-fade-up">
-                      <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                        <p className="text-xs text-gray-400 font-medium">Connecté en tant que</p>
-                        <p className="text-sm font-semibold text-gray-800 truncate">{user?.name}</p>
+                    <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-2xl
+                                    shadow-xl dark:shadow-black/40 border border-gray-100 dark:border-gray-800
+                                    py-1.5 z-50 animate-scale-in">
+                      <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800 mb-1">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Connecté en tant que</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{user?.name}</p>
                       </div>
                       <Link to="/dashboard" onClick={() => setDropOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700
-                                   hover:bg-purple-50 hover:text-purple-700 transition-colors">
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
+                                   hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
                         <Icon name="ticket" className="w-4 h-4" />
                         Mes billets
                       </Link>
                       <Link to="/loyalty" onClick={() => setDropOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700
-                                   hover:bg-purple-50 hover:text-purple-700 transition-colors">
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
+                                   hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
                         <Icon name="gem" className="w-4 h-4" />
-                        BilletCoins
+                        FayasCoins
                       </Link>
                       {isAdmin && (
                         <Link to="/admin" onClick={() => setDropOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700
-                                     hover:bg-purple-50 hover:text-purple-700 transition-colors">
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
+                                     hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
                           <Icon name="tools" className="w-4 h-4" />
                           Administration
                         </Link>
                       )}
-                      <div className="border-t border-gray-100 mt-1 pt-1">
+                      <div className="border-t border-gray-100 dark:border-gray-800 mt-1 pt-1">
                         <button onClick={handleLogout}
                           className="flex items-center gap-2.5 w-full px-4 py-2 text-sm
-                                     text-red-600 hover:bg-red-50 transition-colors">
+                                     text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                           <Icon name="arrow_right" className="w-4 h-4 rotate-180" />
                           Déconnexion
                         </button>
@@ -121,25 +158,38 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-            onClick={() => setMenuOpen(v => !v)}
-            aria-label="Menu"
-          >
-            {menuOpen
-              ? <Icon name="x" className="w-5 h-5" />
-              : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            }
-          </button>
+          {/* Mobile: theme toggle + hamburger */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={toggle}
+              className="w-9 h-9 rounded-xl flex items-center justify-center
+                         bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-yellow-300
+                         transition-all duration-200"
+            >
+              <span key={isDark ? 'sun-m' : 'moon-m'} className="animate-theme-swap">
+                <Icon name={isDark ? 'sun' : 'moon'} className="w-4 h-4" strokeWidth={2} />
+              </span>
+            </button>
+            <button
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => setMenuOpen(v => !v)}
+              aria-label="Menu"
+            >
+              {menuOpen
+                ? <Icon name="x" className="w-5 h-5" />
+                : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+              }
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1 animate-fade-up">
+        <div className="md:hidden border-t border-gray-100 dark:border-gray-800
+                        bg-white dark:bg-gray-950 px-4 py-4 space-y-1 animate-fade-up">
           {[
             { to: '/', label: 'Accueil', end: true },
             { to: '/events', label: 'Événements' },
@@ -149,35 +199,37 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `block py-2.5 px-3 rounded-xl font-medium text-sm transition-colors
-                 ${isActive ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50'}`
+                 ${isActive
+                   ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`
               }>
               {label}
             </NavLink>
           ))}
 
-          <div className="border-t border-gray-100 pt-3 mt-3">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-3 mt-3">
             {isAuthenticated ? (
               <div className="space-y-1">
                 <Link to="/dashboard" onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium
-                             text-gray-700 hover:bg-gray-50">
+                             text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                   <Icon name="ticket" className="w-4 h-4 text-gray-400" /> Mes billets
                 </Link>
                 <Link to="/loyalty" onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium
-                             text-gray-700 hover:bg-gray-50">
-                  <Icon name="gem" className="w-4 h-4 text-gray-400" /> BilletCoins
+                             text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Icon name="gem" className="w-4 h-4 text-gray-400" /> FayasCoins
                 </Link>
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium
-                               text-gray-700 hover:bg-gray-50">
+                               text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                     <Icon name="tools" className="w-4 h-4 text-gray-400" /> Administration
                   </Link>
                 )}
                 <button onClick={handleLogout}
                   className="flex items-center gap-2 w-full py-2.5 px-3 rounded-xl text-sm
-                             font-medium text-red-600 hover:bg-red-50">
+                             font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                   <Icon name="arrow_right" className="w-4 h-4 rotate-180" /> Déconnexion
                 </button>
               </div>

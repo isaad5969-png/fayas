@@ -11,11 +11,11 @@ const TYPE_CONFIG = {
 }
 
 const TYPE_ACCENT = {
-  gala: 'bg-purple-500/20 text-purple-300 border-purple-400/30',
-  soiree: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
+  gala:       'bg-purple-500/20 text-purple-300 border-purple-400/30',
+  soiree:     'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
   universite: 'bg-blue-500/20 text-blue-300 border-blue-400/30',
-  concert: 'bg-rose-500/20 text-rose-300 border-rose-400/30',
-  autre: 'bg-slate-500/20 text-slate-300 border-slate-400/30',
+  concert:    'bg-rose-500/20 text-rose-300 border-rose-400/30',
+  autre:      'bg-slate-500/20 text-slate-300 border-slate-400/30',
 }
 
 function formatDate(dateStr) {
@@ -42,10 +42,11 @@ export default function EventCard({ event }) {
   return (
     <Link
       to={`/events/${event.id}`}
-      className="group flex flex-col h-full rounded-2xl overflow-hidden bg-white
-                 border border-gray-100 shadow-sm
-                 hover:shadow-xl hover:shadow-purple-100/60 hover:-translate-y-1
-                 transition-all duration-300"
+      className="group flex flex-col h-full rounded-2xl overflow-hidden
+                 bg-white dark:bg-gray-900
+                 border border-gray-100 dark:border-gray-800
+                 shadow-sm card-glow
+                 transition-colors duration-300"
     >
       {/* ══ PHOTO HEADER ══ */}
       <div className="relative h-52 overflow-hidden flex-shrink-0 bg-gray-900">
@@ -64,7 +65,7 @@ export default function EventCard({ event }) {
             onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}
             className={`absolute inset-0 w-full h-full object-cover object-center
-                        group-hover:scale-105 transition-transform duration-700
+                        group-hover:scale-110 transition-transform duration-700
                         ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           />
         )}
@@ -141,25 +142,25 @@ export default function EventCard({ event }) {
       <div className="p-5 flex flex-col flex-1">
 
         {/* Title */}
-        <h3 className="font-bold text-gray-900 text-base leading-snug mb-3
-                       group-hover:text-purple-700 transition-colors line-clamp-2">
+        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base leading-snug mb-3
+                       group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
           {event.title}
         </h3>
 
         {/* Meta rows */}
-        <div className="space-y-1.5 text-sm text-gray-500 mb-4 flex-1">
+        <div className="space-y-1.5 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">
           <div className="flex items-center gap-2">
-            <Icon name="clock" className="w-3.5 h-3.5 shrink-0 text-gray-400" />
-            <span className="font-medium text-gray-700">{event.time}</span>
+            <Icon name="clock" className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-500" />
+            <span className="font-medium text-gray-700 dark:text-gray-300">{event.time}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Icon name="building" className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+            <Icon name="building" className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-500" />
             <span className="truncate">{event.venue}</span>
           </div>
           {event.dress_code && (
             <div className="flex items-center gap-2">
-              <Icon name="tag" className="w-3.5 h-3.5 shrink-0 text-gray-400" />
-              <span className="truncate text-gray-400 italic text-xs">{event.dress_code}</span>
+              <Icon name="tag" className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-500" />
+              <span className="truncate text-gray-400 dark:text-gray-500 italic text-xs">{event.dress_code}</span>
             </div>
           )}
         </div>
@@ -167,16 +168,16 @@ export default function EventCard({ event }) {
         {/* Availability bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center text-xs mb-1.5">
-            <span className="text-gray-400">
+            <span className="text-gray-400 dark:text-gray-500">
               {available > 0 ? `${available} places disponibles` : 'Complet'}
             </span>
             <span className={`font-semibold tabular-nums ${
-              fillPct >= 90 ? 'text-red-500' : fillPct >= 70 ? 'text-amber-500' : 'text-emerald-600'
+              fillPct >= 90 ? 'text-red-500' : fillPct >= 70 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'
             }`}>{fillPct}%</span>
           </div>
-          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-700 ${
+              className={`h-full rounded-full transition-all duration-1000 ${
                 fillPct >= 90 ? 'bg-red-400'
                 : fillPct >= 70 ? 'bg-amber-400'
                 : 'bg-emerald-400'
@@ -187,12 +188,12 @@ export default function EventCard({ event }) {
         </div>
 
         {/* Price + CTA */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
           <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">
               À partir de
             </p>
-            <p className="font-extrabold text-purple-700 text-xl leading-tight">
+            <p className="font-extrabold text-purple-700 dark:text-purple-400 text-xl leading-tight">
               {event.price_standard}
               <span className="text-sm font-semibold ml-1">MAD</span>
             </p>
@@ -200,8 +201,8 @@ export default function EventCard({ event }) {
           <span className={`px-4 py-2 rounded-xl text-sm font-semibold
                             transition-all duration-200 ${
             isFull
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-purple-600 text-white group-hover:bg-purple-700 group-hover:shadow-lg group-hover:shadow-purple-200/60'
+              ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+              : 'bg-purple-600 text-white group-hover:bg-purple-700 group-hover:shadow-lg group-hover:shadow-purple-500/30'
           }`}>
             {isFull ? 'Complet' : 'Réserver'}
           </span>

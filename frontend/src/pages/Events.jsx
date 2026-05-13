@@ -2,20 +2,21 @@ import { useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
+import { useScrollReveal } from '../hooks/useScrollReveal'
 
 const TYPES = [
-  { value: 'all',       label: 'Tous les types' },
-  { value: 'gala',      label: 'Galas'          },
-  { value: 'soiree',    label: 'Soirées'        },
-  { value: 'universite',label: 'Universitaires' },
-  { value: 'concert',   label: 'Concerts'       },
-  { value: 'autre',     label: 'Autres'         },
+  { value: 'all',        label: 'Tous les types' },
+  { value: 'gala',       label: 'Galas'          },
+  { value: 'soiree',     label: 'Soirées'        },
+  { value: 'universite', label: 'Universitaires' },
+  { value: 'concert',    label: 'Concerts'       },
+  { value: 'autre',      label: 'Autres'         },
 ]
 
 const CITIES = [
-  'all', 'Casablanca', 'Rabat', 'Marrakech',
-  'Fès', 'Kénitra', 'Agadir', 'Tétouan',
-  'Meknès', 'Oujda', 'Essaouira', 'Tanger',
+  'all','Casablanca','Rabat','Marrakech',
+  'Fès','Kénitra','Agadir','Tétouan',
+  'Meknès','Oujda','Essaouira','Tanger',
 ]
 
 export default function Events() {
@@ -27,6 +28,8 @@ export default function Events() {
   const [search,      setSearch]      = useState('')
   const [searchInput, setSearchInput] = useState('')
 
+  const [gridRef, gridVisible] = useScrollReveal(0.02)
+
   const fetchEvents = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
@@ -36,46 +39,38 @@ export default function Events() {
     api.get(`/events?${params}`)
       .then(r => {
         const body = r.data
-        if (body?.data) {
-          setEvents(body.data)
-          setMeta(body.meta)
-        } else {
-          setEvents(Array.isArray(body) ? body : [])
-          setMeta(null)
-        }
+        if (body?.data) { setEvents(body.data); setMeta(body.meta) }
+        else            { setEvents(Array.isArray(body) ? body : []); setMeta(null) }
       })
       .finally(() => setLoading(false))
   }, [type, city, search])
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 
-  const handleSearch = e => {
-    e.preventDefault()
-    setSearch(searchInput)
-  }
-
-  const clearSearch = () => { setSearch(''); setSearchInput('') }
-
-  const hasFilters = type !== 'all' || city !== 'all' || search
-  const resetAll   = () => { setType('all'); setCity('all'); clearSearch() }
+  const handleSearch = e => { e.preventDefault(); setSearch(searchInput) }
+  const clearSearch  = ()  => { setSearch(''); setSearchInput('') }
+  const hasFilters   = type !== 'all' || city !== 'all' || search
+  const resetAll     = ()  => { setType('all'); setCity('all'); clearSearch() }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+
       {/* ══ Header ══ */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <p className="text-purple-600 text-xs font-semibold uppercase tracking-widest mb-2">
+          <p className="text-purple-600 dark:text-purple-400 text-xs font-semibold uppercase tracking-widest mb-2">
             Billetterie
           </p>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Tous les événements</h1>
-          <p className="text-gray-500 mt-1">Galas, soirées, concerts et événements universitaires au Maroc</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Tous les événements</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Galas, soirées, concerts et événements universitaires au Maroc</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ══ Filters ══ */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8 space-y-5">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800
+                        shadow-sm p-5 mb-8 space-y-5 transition-colors duration-300">
 
           {/* Search bar */}
           <form onSubmit={handleSearch} className="flex gap-2.5">
@@ -91,8 +86,7 @@ export default function Events() {
             </div>
             <button type="submit" className="btn-primary px-5">Chercher</button>
             {search && (
-              <button type="button" onClick={clearSearch}
-                className="btn-outline px-3.5" aria-label="Effacer">
+              <button type="button" onClick={clearSearch} className="btn-outline px-3.5" aria-label="Effacer">
                 <Icon name="x" className="w-4 h-4" />
               </button>
             )}
@@ -102,7 +96,7 @@ export default function Events() {
           <div className="flex flex-wrap gap-2">
             {TYPES.map(t => (
               <button key={t.value} onClick={() => setType(t.value)}
-                className={`chip ${type === t.value ? 'chip-active' : 'hover:bg-gray-200 hover:text-gray-800'}`}>
+                className={`chip ${type === t.value ? 'chip-active' : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200'}`}>
                 {t.label}
               </button>
             ))}
@@ -119,8 +113,8 @@ export default function Events() {
                 <button key={c} onClick={() => setCity(c)}
                   className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
                     city === c
-                      ? 'bg-purple-100 text-purple-700 border border-purple-200 font-semibold'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                      ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-700 font-semibold'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}>
                   {c === 'all' ? 'Toutes' : c}
                 </button>
@@ -130,11 +124,11 @@ export default function Events() {
 
           {/* Active filters summary */}
           {hasFilters && (
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-              <p className="text-sm text-gray-500">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {!loading && (
                   <>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900 dark:text-white">
                       {meta?.total ?? events.length}
                     </span>
                     {' '}résultat{(meta?.total ?? events.length) !== 1 ? 's' : ''}
@@ -154,37 +148,42 @@ export default function Events() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden border border-gray-100">
-                <div className="h-52 animate-shimmer" />
-                <div className="p-5 space-y-3">
-                  <div className="h-4 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
-                  <div className="h-3 bg-gray-100 rounded-lg w-full animate-pulse" />
+              <div key={i} className="sk-card fade-slide-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <div className="sk-card-img" style={{ height: '13rem' }} />
+                <div className="sk-card-body">
+                  <div className="sk-title" />
+                  <div className="sk-text" />
+                  <div className="sk-text" style={{ width: '75%' }} />
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="sk-badge" />
+                    <div className="sk-btn" style={{ width: '5.5rem', height: '1.75rem' }} />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-2xl border border-gray-100">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-24 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 transition-colors duration-300">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Icon name="search" className="w-7 h-7 text-gray-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Aucun événement trouvé</h3>
+            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">Aucun événement trouvé</h3>
             <p className="text-gray-400 mb-6">Essayez de modifier vos filtres ou votre recherche.</p>
-            {hasFilters && (
-              <button onClick={resetAll} className="btn-secondary">
-                Réinitialiser les filtres
-              </button>
-            )}
+            {hasFilters && <button onClick={resetAll} className="btn-secondary">Réinitialiser les filtres</button>}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map(e => <EventCard key={e.id} event={e} />)}
+            <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map((e, i) => (
+                <div key={e.id}
+                  className={`transition-all duration-600 ${gridVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  style={{ transitionDelay: `${(i % 6) * 60}ms` }}>
+                  <EventCard event={e} />
+                </div>
+              ))}
             </div>
-
-            {/* Pagination hint */}
             {meta && meta.pages > 1 && (
-              <p className="text-center text-sm text-gray-400 mt-8">
+              <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
                 Page {meta.page} sur {meta.pages} — {meta.total} événements au total
               </p>
             )}

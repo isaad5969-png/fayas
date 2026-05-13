@@ -2,15 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Google Font preconnect hint (loaded in index.html if needed) ── */
+/* ══════════════════════════════════════════════
+   BASE — Dark mode smooth transition
+══════════════════════════════════════════════ */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    /* Transition all color-related properties when toggling dark mode */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* ── Refined scrollbar ── */
@@ -18,8 +25,16 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #7C3AED44; border-radius: 10px; }
   ::-webkit-scrollbar-thumb:hover { background: #7C3AED99; }
+
+  /* ── Smooth color transitions on key elements ── */
+  .transition-theme {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
 }
 
+/* ══════════════════════════════════════════════
+   COMPONENTS
+══════════════════════════════════════════════ */
 @layer components {
 
   /* ─── Buttons ─── */
@@ -27,55 +42,56 @@
     @apply inline-flex items-center gap-2
            bg-purple-600 hover:bg-purple-700 active:bg-purple-800
            text-white font-semibold px-6 py-2.5 rounded-xl
-           shadow-sm hover:shadow-md
+           shadow-sm hover:shadow-lg hover:shadow-purple-500/25
            transition-all duration-200
            disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
   }
 
   .btn-secondary {
     @apply inline-flex items-center gap-2
-           bg-white hover:bg-purple-50 active:bg-purple-100
-           text-purple-700 font-semibold px-6 py-2.5 rounded-xl
-           border border-purple-200 hover:border-purple-400
+           bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-gray-700
+           text-purple-700 dark:text-purple-400 font-semibold px-6 py-2.5 rounded-xl
+           border border-purple-200 dark:border-purple-700 hover:border-purple-400
            transition-all duration-200;
   }
 
   .btn-outline {
     @apply inline-flex items-center gap-2
-           text-gray-600 hover:text-purple-600
-           border border-gray-200 hover:border-purple-300 hover:bg-purple-50/50
+           text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400
+           border border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-900/20
            font-medium px-4 py-2 rounded-lg
            transition-all duration-200;
   }
 
   .btn-ghost {
     @apply inline-flex items-center gap-2
-           text-gray-500 hover:text-purple-600 hover:bg-purple-50
+           text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400
+           hover:bg-purple-50 dark:hover:bg-purple-900/20
            font-medium px-3 py-2 rounded-lg
            transition-all duration-150;
   }
 
   /* ─── Cards ─── */
   .card {
-    @apply bg-white rounded-2xl border border-gray-100
-           shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden;
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800
+           shadow-sm hover:shadow-md dark:hover:shadow-gray-950/50 transition-all duration-200 overflow-hidden;
   }
 
   .card-flat {
-    @apply bg-white rounded-2xl border border-gray-100 overflow-hidden;
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden;
   }
 
   /* ─── Forms ─── */
   .input {
-    @apply w-full bg-white border border-gray-200
-           rounded-xl px-4 py-2.5 text-gray-900
-           placeholder:text-gray-400
+    @apply w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+           rounded-xl px-4 py-2.5 text-gray-900 dark:text-gray-100
+           placeholder:text-gray-400 dark:placeholder:text-gray-500
            focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400
            transition-all duration-150;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5;
   }
 
   /* ─── Badge / Chip ─── */
@@ -87,7 +103,7 @@
   .chip {
     @apply inline-flex items-center gap-1.5
            px-3 py-1 rounded-lg text-sm font-medium
-           bg-gray-100 text-gray-600
+           bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300
            transition-colors duration-150;
   }
 
@@ -96,19 +112,17 @@
   }
 
   /* ─── Section headings ─── */
-  .section-title { @apply text-2xl md:text-3xl font-bold text-gray-900 tracking-tight; }
-  .section-sub   { @apply text-gray-500 text-base mt-1; }
+  .section-title { @apply text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight; }
+  .section-sub   { @apply text-gray-500 dark:text-gray-400 text-base mt-1; }
 
   /* ─── Stat card ─── */
   .stat-card {
-    @apply bg-white rounded-2xl border border-gray-100 p-5 shadow-sm
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm
            flex flex-col gap-1;
   }
-  .stat-value { @apply text-2xl font-extrabold text-gray-900 tabular-nums; }
-  .stat-label { @apply text-sm text-gray-500; }
-  .stat-icon  {
-    @apply w-10 h-10 rounded-xl flex items-center justify-center mb-1;
-  }
+  .stat-value { @apply text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums; }
+  .stat-label { @apply text-sm text-gray-500 dark:text-gray-400; }
+  .stat-icon  { @apply w-10 h-10 rounded-xl flex items-center justify-center mb-1; }
 
   /* ─── Pill overlay badge (on photos) ─── */
   .photo-badge {
@@ -119,31 +133,295 @@
   }
 }
 
-/* ──────────────────────────────────
-   Animations
-────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   SCROLL REVEAL — attach ref + watch isVisible
+══════════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+              transform 0.65s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+              transform 0.65s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+              transform 0.65s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1),
+              transform 0.55s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* Stagger delays */
+.stagger-1 { transition-delay: 0.08s; }
+.stagger-2 { transition-delay: 0.16s; }
+.stagger-3 { transition-delay: 0.24s; }
+.stagger-4 { transition-delay: 0.32s; }
+.stagger-5 { transition-delay: 0.40s; }
+.stagger-6 { transition-delay: 0.48s; }
+
+/* ══════════════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════════════ */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
-
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeSlideRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeZoom {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes fadeBlurIn {
+  from { opacity: 0; filter: blur(8px); transform: translateY(8px); }
+  to   { opacity: 1; filter: blur(0px); transform: translateY(0); }
+}
+@keyframes skeletonPulse {
+  0%   { background-position: -300% 0; }
+  100% { background-position:  300% 0; }
+}
 
+/* ══════════════════════════════════════════════
+   FADE + SLIDE — entry animations
+   Usage: <div class="fade-slide-up anim-delay-200">
+          Add anim-delay-* for staggering.
+══════════════════════════════════════════════ */
+
+/* Enters from below */
+.fade-slide-up   { animation: fadeSlideUp   0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Enters from above */
+.fade-slide-down { animation: fadeSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Enters from left */
+.fade-slide-left { animation: fadeSlideLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Enters from right */
+.fade-slide-right { animation: fadeSlideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Scales up + rises (card pop) */
+.fade-zoom { animation: fadeZoom 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Blurs out from translucent (hero text, modals) */
+.fade-blur-in { animation: fadeBlurIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ── Animation delay utilities ── */
+.anim-delay-75   { animation-delay:  75ms; }
+.anim-delay-100  { animation-delay: 100ms; }
+.anim-delay-150  { animation-delay: 150ms; }
+.anim-delay-200  { animation-delay: 200ms; }
+.anim-delay-300  { animation-delay: 300ms; }
+.anim-delay-400  { animation-delay: 400ms; }
+.anim-delay-500  { animation-delay: 500ms; }
+.anim-delay-600  { animation-delay: 600ms; }
+.anim-delay-700  { animation-delay: 700ms; }
+.anim-delay-1000 { animation-delay: 1000ms; }
+
+/* ── Animation duration utilities ── */
+.anim-fast   { animation-duration: 0.35s; }
+.anim-normal { animation-duration: 0.6s;  }
+.anim-slow   { animation-duration: 0.9s;  }
+
+/* ══════════════════════════════════════════════
+   SKELETON LOADING — light / dark adaptive
+   Usage:
+     Simple line:   <div class="skeleton h-4 w-3/4 rounded-lg"></div>
+     Preset shapes: <div class="sk-text"></div>
+                    <div class="sk-title"></div>
+                    <div class="sk-avatar"></div>
+                    <div class="sk-img"></div>
+                    <div class="sk-btn"></div>
+
+   Preset card:
+     <div class="sk-card">
+       <div class="sk-card-img"></div>
+       <div class="sk-card-body">
+         <div class="sk-title"></div>
+         <div class="sk-text"></div>
+         <div class="sk-text w-3/4"></div>
+       </div>
+     </div>
+══════════════════════════════════════════════ */
+
+/* ── Base shimmer ── */
+.skeleton,
+.sk-text, .sk-title, .sk-avatar,
+.sk-img, .sk-btn, .sk-badge,
+.sk-card-img {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f9fafb 50%, #e5e7eb 75%);
+  background-size: 300% 100%;
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+}
+
+/* ── Dark mode auto-switch ── */
+.dark .skeleton,
+.dark .sk-text, .dark .sk-title, .dark .sk-avatar,
+.dark .sk-img, .dark .sk-btn, .dark .sk-badge,
+.dark .sk-card-img {
+  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background-size: 300% 100%;
+}
+
+/* ── Shape presets ── */
+.sk-text {
+  height: 0.875rem;   /* 14px — body text line */
+  border-radius: 0.4rem;
+  width: 100%;
+}
+
+.sk-title {
+  height: 1.25rem;    /* 20px — heading line */
+  border-radius: 0.5rem;
+  width: 65%;
+}
+
+.sk-avatar {
+  border-radius: 9999px;
+  /* caller sets width + height */
+}
+
+.sk-img {
+  border-radius: 1rem;
+  /* caller sets height */
+}
+
+.sk-btn {
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  width: 8rem;
+}
+
+.sk-badge {
+  height: 1.5rem;
+  border-radius: 9999px;
+  width: 4.5rem;
+}
+
+/* ── Preset card skeleton ── */
+.sk-card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #f3f4f6;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.dark .sk-card {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+.sk-card-img {
+  width: 100%;
+  height: 13rem;
+  border-radius: 0;
+}
+
+.sk-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Pulse-only variant (no shimmer, simpler) ── */
+@keyframes sk-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.sk-pulse {
+  animation: sk-pulse 1.8s ease-in-out infinite;
+  background: #e5e7eb;
+  border-radius: 0.5rem;
+}
+.dark .sk-pulse {
+  background: #1f2937;
+}
+
+/* ══════════════════════════════════════════════
+   LEGACY shimmer classes (kept for compatibility)
+══════════════════════════════════════════════ */
+/* Light shimmer */
+.animate-shimmer-light {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+/* Dark shimmer */
 .animate-shimmer {
   background: linear-gradient(90deg, #1f2937 25%, #2d3748 50%, #1f2937 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
 
-.animate-fade-up {
-  animation: fade-up 0.4s ease both;
+.animate-fade-up { animation: fade-up 0.45s ease both; }
+
+/* ── Glow effect for cards on hover ── */
+.card-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 20px 60px -10px rgba(139, 92, 246, 0.25),
+              0 8px 20px -4px rgba(139, 92, 246, 0.12);
+  transform: translateY(-4px);
+}
+.dark .card-glow:hover {
+  box-shadow: 0 20px 60px -10px rgba(139, 92, 246, 0.4),
+              0 8px 20px -4px rgba(139, 92, 246, 0.2);
+}
+
+/* ── Gradient animated text ── */
+.text-gradient-animated {
+  background: linear-gradient(90deg, #7C3AED, #a855f7, #6366f1, #7C3AED);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease infinite;
 }
 
 /* ── Smooth image transitions ── */
 img { transition: opacity 0.35s ease, transform 0.5s ease; }
 
 /* ── Page entry animation ── */
-main > * { animation: fade-up 0.3s ease both; }
+main > * { animation: fade-up 0.35s ease both; }

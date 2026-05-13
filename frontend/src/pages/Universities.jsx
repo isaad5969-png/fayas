@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
+import { useScrollReveal } from '../hooks/useScrollReveal'
 
-function UniCard({ u }) {
+function UniCard({ u, index, visible }) {
   const [imgError, setImgError] = useState(false)
   const showPhoto = u.image_url && !imgError
   return (
     <Link
       to={`/universities/${u.id}`}
-      className="group rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 bg-white border border-gray-100 flex flex-col"
+      className={`group rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1.5
+                  transition-all duration-500 bg-white dark:bg-gray-900
+                  border border-gray-100 dark:border-gray-800 flex flex-col
+                  ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      style={{ transitionDelay: `${(index % 6) * 70}ms` }}
     >
       <div className="relative h-44 overflow-hidden flex-shrink-0">
         {showPhoto ? (
@@ -45,23 +50,23 @@ function UniCard({ u }) {
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-3 h-10 rounded-full shrink-0" style={{ backgroundColor: u.color }} />
-          <h3 className="font-extrabold text-gray-900 text-sm leading-snug group-hover:text-purple-700 transition-colors">
+          <h3 className="font-extrabold text-gray-900 dark:text-white text-sm leading-snug group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
             {u.name}
           </h3>
         </div>
-        <p className="text-gray-500 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{u.description}</p>
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{u.description}</p>
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
           <div className="flex gap-4">
             <div className="text-center">
-              <p className="font-extrabold text-purple-700">{(u.student_count / 1000).toFixed(0)}K</p>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">étudiants</p>
+              <p className="font-extrabold text-purple-700 dark:text-purple-400">{(u.student_count / 1000).toFixed(0)}K</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">étudiants</p>
             </div>
             <div className="text-center">
-              <p className="font-extrabold text-purple-700">{u.event_count ?? 0}</p>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">événements</p>
+              <p className="font-extrabold text-purple-700 dark:text-purple-400">{u.event_count ?? 0}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">événements</p>
             </div>
           </div>
-          <span className="text-sm font-bold text-purple-600 group-hover:text-purple-800 transition-colors">
+          <span className="text-sm font-bold text-purple-600 dark:text-purple-400 group-hover:text-purple-800 dark:group-hover:text-purple-300 transition-colors">
             Voir les soirées →
           </span>
         </div>
@@ -73,17 +78,21 @@ function UniCard({ u }) {
 export default function Universities() {
   const [universities, setUniversities] = useState([])
   const [loading, setLoading]           = useState(true)
+  const [gridRef, gridVisible]          = useScrollReveal(0.02)
 
   useEffect(() => {
     api.get('/universities').then(r => setUniversities(r.data)).finally(() => setLoading(false))
   }, [])
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* ── Hero ── */}
       <div className="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 py-20 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10 text-[18rem] flex items-center justify-center select-none pointer-events-none">🎓</div>
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+        {/* Floating blobs */}
+        <div className="absolute top-10 left-20 w-40 h-40 bg-white/10 rounded-full animate-blob" />
+        <div className="absolute bottom-10 right-16 w-56 h-56 bg-purple-300/10 rounded-full animate-float-slow" />
+        <div className="relative max-w-4xl mx-auto px-4 text-center animate-fade-up">
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full text-sm font-semibold mb-6">
             🎓 Soirées Universitaires Maroc
           </div>
@@ -103,20 +112,28 @@ export default function Universities() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden shadow-sm bg-white animate-pulse">
-                <div className="h-44 bg-gray-200" />
-                <div className="p-5 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  <div className="h-3 bg-gray-200 rounded w-full" />
+              <div key={i} className="sk-card fade-slide-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <div className="sk-card-img" style={{ height: '11rem' }} />
+                <div className="sk-card-body">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="skeleton rounded-full" style={{ width: '0.75rem', height: '2.5rem' }} />
+                    <div className="sk-title" style={{ width: '70%' }} />
+                  </div>
+                  <div className="sk-text" />
+                  <div className="sk-text" style={{ width: '80%' }} />
+                  <div className="skeleton h-px w-full mt-1" />
+                  <div className="flex justify-between pt-1">
+                    <div className="sk-text" style={{ width: '30%' }} />
+                    <div className="sk-text" style={{ width: '25%' }} />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {universities.map(u => (
-              <UniCard key={u.id} u={u} />
+          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {universities.map((u, i) => (
+              <UniCard key={u.id} u={u} index={i} visible={gridVisible} />
             ))}
           </div>
         )}
