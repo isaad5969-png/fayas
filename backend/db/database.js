@@ -11,6 +11,9 @@ try { if (fs.existsSync(lockPath)) fs.rmSync(lockPath, { recursive: true, force:
 
 const db = new Database(dbPath);
 db.exec('PRAGMA foreign_keys = ON');
+db.exec('PRAGMA journal_mode = WAL');
+db.exec('PRAGMA synchronous = NORMAL');
+db.exec('PRAGMA busy_timeout = 5000');
 db.exec('PRAGMA cache_size = -8000');  /* 8 MB query cache */
 db.exec('PRAGMA temp_store = MEMORY'); /* temp tables in RAM */
 
@@ -79,13 +82,34 @@ db.exec(`
 /* ── Performance indexes ── */
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_events_status_date  ON events(status, date);
+  CREATE INDEX IF NOT EXISTS idx_events_status_city_date ON events(status, city, date);
+  CREATE INDEX IF NOT EXISTS idx_events_status_type_date ON events(status, type, date);
+  CREATE INDEX IF NOT EXISTS idx_events_status_university_date ON events(status, university_id, date);
   CREATE INDEX IF NOT EXISTS idx_events_city         ON events(city);
   CREATE INDEX IF NOT EXISTS idx_events_type         ON events(type);
   CREATE INDEX IF NOT EXISTS idx_events_university   ON events(university_id);
   CREATE INDEX IF NOT EXISTS idx_tickets_user        ON tickets(user_id);
+  CREATE INDEX IF NOT EXISTS idx_tickets_user_purchased ON tickets(user_id, purchased_at DESC);
   CREATE INDEX IF NOT EXISTS idx_tickets_event       ON tickets(event_id);
+  CREATE INDEX IF NOT EXISTS idx_tickets_status_purchased ON tickets(status, purchased_at DESC);
   CREATE INDEX IF NOT EXISTS idx_users_email         ON users(email);
 `);
+
+function transaction(fn) {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (err) {
+    try { db.exec('ROLLBACK'); } catch (_) {}
+    throw err;
+  }
+}
+
+function optimize() {
+  try { db.exec('PRAGMA optimize'); } catch (_) {}
+}
 
 function seedDatabase() {
   const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@billetterie.ma');
@@ -397,5 +421,7 @@ function seedTidarEvents() {
 
 seedDatabase();
 seedTidarEvents();
+optimize();
 
 module.exports = db;
+module.exports.transaction = transaction;

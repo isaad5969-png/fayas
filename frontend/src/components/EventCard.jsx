@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from './Icons'
 
@@ -18,13 +18,17 @@ const TYPE_ACCENT = {
   autre:      'bg-slate-500/20 text-slate-300 border-slate-400/30',
 }
 
+const dateFormatter = new Intl.DateTimeFormat('fr-MA', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('fr-MA', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
+  return dateFormatter.format(new Date(dateStr))
 }
 
-export default function EventCard({ event }) {
+function EventCard({ event }) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError,  setImgError]  = useState(false)
 
@@ -211,3 +215,5 @@ export default function EventCard({ event }) {
     </Link>
   )
 }
+
+export default memo(EventCard)

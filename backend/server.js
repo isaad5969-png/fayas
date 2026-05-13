@@ -37,21 +37,15 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
 /* ── Request logger ── */
-app.use((req, _res, next) => {
-  req._startAt = process.hrtime();
-  next();
-});
-
 app.use((req, res, next) => {
-  const orig = res.json.bind(res);
-  res.json = (body) => {
-    const diff = process.hrtime(req._startAt);
+  const startAt = process.hrtime();
+  res.on('finish', () => {
+    const diff = process.hrtime(startAt);
     const ms   = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(1);
     const code = res.statusCode;
     const color = code >= 500 ? '\x1b[31m' : code >= 400 ? '\x1b[33m' : '\x1b[32m';
     console.log(`${color}${req.method}\x1b[0m ${req.path} ${color}${code}\x1b[0m \x1b[2m${ms}ms\x1b[0m`);
-    return orig(body);
-  };
+  });
   next();
 });
 
@@ -81,8 +75,12 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('\n\x1b[35m◆ BilletterieMa API v1.1\x1b[0m');
-  console.log(`\x1b[36m  http://localhost:${PORT}/api\x1b[0m`);
-  console.log('\x1b[2m  Admin: admin@billetterie.ma / Admin123!\x1b[0m\n');
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n\x1b[35m◆ BilletterieMa API v1.1\x1b[0m');
+    console.log(`\x1b[36m  http://localhost:${PORT}/api\x1b[0m`);
+    console.log('\x1b[2m  Admin: admin@billetterie.ma / Admin123!\x1b[0m\n');
+  });
+}
+
+module.exports = app;

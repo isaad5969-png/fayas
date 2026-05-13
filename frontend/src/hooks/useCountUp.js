@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 /**
  * Animates a number from 0 to `end` over `duration` ms.
  * Only starts when `trigger` is true.
@@ -9,7 +13,11 @@ export function useCountUp(end, duration = 1800, trigger = true) {
   const [value, setValue] = useState(0)
 
   useEffect(() => {
-    if (!trigger || end === 0) return
+    if (!trigger) return
+    if (end === 0 || prefersReducedMotion()) {
+      setValue(end)
+      return
+    }
     let raf
     const startTime = performance.now()
 

@@ -15,9 +15,24 @@ export default function Navbar() {
 
   /* ── Detect scroll to shrink/blur navbar ── */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    let rafId = 0
+    const onScroll = () => {
+      if (rafId) return
+      rafId = window.requestAnimationFrame(() => {
+        setScrolled(prev => {
+          const next = window.scrollY > 20
+          return prev === next ? prev : next
+        })
+        rafId = 0
+      })
+    }
+
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (rafId) window.cancelAnimationFrame(rafId)
+    }
   }, [])
 
   const handleLogout = () => {

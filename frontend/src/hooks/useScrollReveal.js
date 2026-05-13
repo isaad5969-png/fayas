@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 /**
  * Returns [ref, isVisible].
  * Attach ref to any element — isVisible becomes true once the element
@@ -12,6 +16,11 @@ export function useScrollReveal(threshold = 0.15) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+      setIsVisible(true)
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
