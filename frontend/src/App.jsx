@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 const Home = lazy(() => import('./pages/Home'))
 const Events = lazy(() => import('./pages/Events'))
 const EventDetail = lazy(() => import('./pages/EventDetail'))
+const Checkout = lazy(() => import('./pages/Checkout'))
 const Universities = lazy(() => import('./pages/Universities'))
 const UniversityEvents = lazy(() => import('./pages/UniversityEvents'))
 const Login = lazy(() => import('./pages/Login'))
@@ -34,6 +35,9 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/checkout" element={
+              <ProtectedRoute><Checkout /></ProtectedRoute>
+            } />
             <Route path="/universities" element={<Universities />} />
             <Route path="/universities/:id" element={<UniversityEvents />} />
             <Route path="/login" element={<Login />} />

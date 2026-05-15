@@ -35,24 +35,14 @@ export default function EventDetail() {
   const unitPrice = event ? (ticketType === 'vip' ? event.price_vip : event.price_standard) : 0
   const total = unitPrice * quantity
 
-  const purchase = async () => {
+  const goToCheckout = () => {
     if (!isAuthenticated) {
       toast.error('Connectez-vous pour réserver')
       navigate('/login')
       return
     }
     setPurchasing(true)
-    try {
-      const res = await api.post('/tickets/purchase', { event_id: id, ticket_type: ticketType, quantity })
-      const pts = res.data.points_earned || 0
-      const bonusMsg = res.data.bonus_first ? ' (+100 pts bonus bienvenue 🎁)' : res.data.bonus_streak ? ' (+150 pts bonus régularité 🔥)' : ''
-      toast.success(`🎉 Réservé ! +${pts} FayasCoins gagnés${bonusMsg}`, { duration: 4000 })
-      navigate('/dashboard')
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur lors de la réservation')
-    } finally {
-      setPurchasing(false)
-    }
+    navigate('/checkout', { state: { event, ticketType, quantity } })
   }
 
   if (loading) return (
@@ -244,9 +234,9 @@ export default function EventDetail() {
                   <Link to="/loyalty" className="text-xs text-purple-500 dark:text-purple-400 underline">Voir mes points</Link>
                 </div>
 
-                <button onClick={purchase} disabled={purchasing}
-                  className="btn-primary w-full text-center justify-center">
-                  {purchasing ? 'Réservation en cours...' : isAuthenticated ? '🎫 Réserver maintenant' : '🔑 Se connecter pour réserver'}
+                <button onClick={goToCheckout} disabled={purchasing}
+                  className="btn-primary w-full text-center justify-center disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isAuthenticated ? '💳 Réserver & Payer' : '🔑 Se connecter pour réserver'}
                 </button>
 
                 {!isAuthenticated && (

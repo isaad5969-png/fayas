@@ -4,6 +4,7 @@ const jwt     = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db/database');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -48,6 +49,7 @@ router.post('/register', (req, res) => {
     'SELECT id, name, email, role, university_id, phone, loyalty_points, created_at FROM users WHERE id = ?'
   ).get(id);
 
+  sendWelcomeEmail(user).catch(err => console.error('[Email]', err.message));
   res.status(201).json({ user: safeUser(user), token: signToken(user) });
 });
 
