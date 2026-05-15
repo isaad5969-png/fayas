@@ -79,6 +79,11 @@ db.exec(`
   );
 `);
 
+/* ── Migrations ── */
+try {
+  db.exec('ALTER TABLE tickets ADD COLUMN payment_intent_id TEXT');
+} catch (_) { /* colonne déjà présente */ }
+
 /* ── Performance indexes ── */
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_events_status_date  ON events(status, date);

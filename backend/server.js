@@ -7,6 +7,7 @@ const universityRoutes = require('./routes/universities');
 const ticketRoutes     = require('./routes/tickets');
 const adminRoutes      = require('./routes/admin');
 const loyaltyRoutes    = require('./routes/loyalty');
+const paymentRoutes    = require('./routes/payments');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -56,6 +57,7 @@ app.use('/api/universities', universityRoutes);
 app.use('/api/tickets',      ticketRoutes);
 app.use('/api/admin',        adminRoutes);
 app.use('/api/loyalty',      loyaltyRoutes);
+app.use('/api/payments',     paymentRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', version: '1.1', ts: new Date().toISOString() });
