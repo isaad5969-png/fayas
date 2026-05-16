@@ -16,14 +16,14 @@ export default function Dashboard() {
   const [listRef,  listVisible]  = useScrollReveal(0.05)
 
   useEffect(() => {
-    api.get('/tickets/my').then(r => setTickets(r.data)).finally(() => setLoading(false))
+    api.get('/tickets/my').then(r => setTickets(r.data.data ?? r.data)).finally(() => setLoading(false))
   }, [])
 
   const now      = new Date()
   const upcoming = tickets.filter(t => new Date(t.date) >= now)
   const past     = tickets.filter(t => new Date(t.date) < now)
   const displayed  = tab === 'upcoming' ? upcoming : past
-  const totalSpent = tickets.reduce((s, t) => s + t.total_price, 0)
+  const totalSpent = tickets.reduce((s, t) => s + Number(t.total_price), 0)
 
   const STAT_CARDS = [
     { label: 'Billets achetés',    value: tickets.length,                              icon: 'ticket',      bg: 'bg-purple-50 dark:bg-purple-900/30', color: 'text-purple-600 dark:text-purple-400' },

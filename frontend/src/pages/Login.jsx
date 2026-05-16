@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -26,6 +27,10 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = (user) => {
+    navigate(user.role === 'admin' ? '/admin' : from)
   }
 
   return (
@@ -66,6 +71,14 @@ export default function Login() {
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
+            <span className="text-xs font-semibold uppercase text-gray-400">ou</span>
+            <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
+          </div>
+
+          <GoogleAuthButton onSuccess={handleGoogleSuccess} />
 
           <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-6">
             Pas encore de compte ?{' '}

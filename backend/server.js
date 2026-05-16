@@ -1,5 +1,8 @@
+require('./config/env')();
 const express = require('express');
 const cors    = require('cors');
+const db      = require('./db/database');
+const { rateLimit } = require('./middleware/rateLimit');
 
 const authRoutes       = require('./routes/auth');
 const eventRoutes      = require('./routes/events');
@@ -12,7 +15,7 @@ const paymentRoutes    = require('./routes/payments');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-/* ── Security headers (no helmet needed) ── */
+/* ── Security headers ── */
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -41,17 +44,20 @@ app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use((req, res, next) => {
   const startAt = process.hrtime();
   res.on('finish', () => {
-    const diff = process.hrtime(startAt);
-    const ms   = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(1);
-    const code = res.statusCode;
+    const diff  = process.hrtime(startAt);
+    const ms    = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(1);
+    const code  = res.statusCode;
     const color = code >= 500 ? '\x1b[31m' : code >= 400 ? '\x1b[33m' : '\x1b[32m';
     console.log(`${color}${req.method}\x1b[0m ${req.path} ${color}${code}\x1b[0m \x1b[2m${ms}ms\x1b[0m`);
   });
   next();
 });
 
+/* ── Rate limiting on auth routes (brute-force protection) ── */
+const authLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: 'Trop de tentatives, réessayez dans 15 min.' });
+
 /* ── Routes ── */
-app.use('/api/auth',         authRoutes);
+app.use('/api/auth',         authLimiter, authRoutes);
 app.use('/api/events',       eventRoutes);
 app.use('/api/universities', universityRoutes);
 app.use('/api/tickets',      ticketRoutes);
@@ -60,10 +66,10 @@ app.use('/api/loyalty',      loyaltyRoutes);
 app.use('/api/payments',     paymentRoutes);
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', version: '1.1', ts: new Date().toISOString() });
+  res.json({ status: 'ok', version: '1.2', ts: new Date().toISOString() });
 });
 
-/* ── 404 handler ── */
+/* ── 404 ── */
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route introuvable' });
 });
@@ -78,11 +84,18 @@ app.use((err, _req, res, _next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('\n\x1b[35m◆ BilletterieMa API v1.1\x1b[0m');
-    console.log(`\x1b[36m  http://localhost:${PORT}/api\x1b[0m`);
-    console.log('\x1b[2m  Admin: admin@billetterie.ma / Admin123!\x1b[0m\n');
-  });
+  db.init()
+    .then(() => {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log('\n\x1b[35m◆ BilletterieMa API v1.2\x1b[0m');
+        console.log(`\x1b[36m  http://localhost:${PORT}/api\x1b[0m`);
+        console.log('\x1b[2m  Admin: admin@billetterie.ma / Admin123!\x1b[0m\n');
+      });
+    })
+    .catch((err) => {
+      console.error('\x1b[31m[DB ERROR]\x1b[0m', err.message);
+      process.exit(1);
+    });
 }
 
 module.exports = app;

@@ -35,9 +35,9 @@ export default function Admin() {
   }, [])
 
   useEffect(() => {
-    if (tab === 'events') api.get('/events').then(r => setEvents(r.data))
+    if (tab === 'events') api.get('/events').then(r => setEvents(r.data?.data ?? r.data))
     if (tab === 'users') api.get('/admin/users').then(r => setUsers(r.data))
-    if (tab === 'tickets') api.get('/admin/tickets').then(r => setAllTickets(r.data))
+    if (tab === 'tickets') api.get('/admin/tickets').then(r => setAllTickets(r.data?.data ?? r.data))
   }, [tab])
 
   const handleField = e => setFormData(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -66,7 +66,7 @@ export default function Admin() {
         toast.success('Événement créé ✓')
       }
       setShowForm(false)
-      api.get('/events').then(r => setEvents(r.data))
+      api.get('/events').then(r => setEvents(r.data?.data ?? r.data))
       api.get('/admin/stats').then(r => setStats(r.data))
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la sauvegarde')

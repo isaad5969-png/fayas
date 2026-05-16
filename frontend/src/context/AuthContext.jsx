@@ -38,6 +38,14 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
+  const googleLogin = async (credential) => {
+    const { data } = await api.post('/auth/google', { credential })
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    setUser(data.user)
+    return data.user
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -49,7 +57,7 @@ export function AuthProvider({ children }) {
       user, loading,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
-      login, register, logout
+      login, register, googleLogin, logout
     }}>
       {children}
     </AuthContext.Provider>
