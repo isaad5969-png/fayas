@@ -6,30 +6,33 @@ const { v4: uuidv4 } = require('uuid');
 
 const connectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
-  console.warn('[DB] DATABASE_URL is not set. Configure a PostgreSQL connection string before starting the API.');
+let pool;
+
+if (connectionString) {
+  /* ── Production / staging : vraie base PostgreSQL ── */
+  pool = new Pool({
+    connectionString,
+    ssl: !connectionString.includes('localhost') && !connectionString.includes('127.0.0.1')
+      ? { rejectUnauthorized: false }
+      : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
+  pool.on('error', (err) => console.error('[DB] Pool error:', err.message));
+} else {
+  /* ── Mode démo local : base PostgreSQL in-memory (pg-mem) ── */
+  console.info('[DB] Aucune DATABASE_URL — démarrage en mode démo (base in-memory).');
+  const { newDb } = require('pg-mem');
+  const memDb = newDb();
+  /* pg-mem expose un adaptateur pg Pool-compatible */
+  pool = memDb.adapters.createPg().Pool;
+  pool = new pool();
 }
-
-const pool = new Pool({
-  connectionString,
-  ssl: connectionString && !connectionString.includes('localhost') && !connectionString.includes('127.0.0.1')
-    ? { rejectUnauthorized: false }
-    : false,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
-
-pool.on('error', (err) => {
-  console.error('[DB] Unexpected pool error:', err.message);
-});
 
 let initPromise;
 
 async function query(sql, params = []) {
-  if (!connectionString) {
-    throw new Error('DATABASE_URL manquant. Configurez une base PostgreSQL.');
-  }
   if (initPromise) await initPromise;
   return pool.query(sql, params);
 }
@@ -49,10 +52,6 @@ async function run(sql, params = []) {
 }
 
 async function transaction(fn) {
-  if (!connectionString) {
-    throw new Error('DATABASE_URL manquant. Configurez une base PostgreSQL.');
-  }
-
   const client = await pool.connect();
   const tx = {
     query: (sql, params = []) => client.query(sql, params),
@@ -75,7 +74,6 @@ async function transaction(fn) {
 }
 
 async function initSchema() {
-  if (!connectionString) return;
 
   const client = await pool.connect();
   try {
@@ -161,17 +159,10 @@ async function initSchema() {
       ALTER TABLE tickets  ADD COLUMN IF NOT EXISTS payment_intent_id  TEXT;
     `);
 
-    /* ── ensure unique constraint on short_name for upsert ── */
-    await client.query(`
-      DO $$ BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint
-          WHERE conname = 'universities_short_name_key'
-        ) THEN
-          ALTER TABLE universities ADD CONSTRAINT universities_short_name_key UNIQUE (short_name);
-        END IF;
-      END $$;
-    `);
+    /* ── ensure unique constraint on short_name (migration safety) ── */
+    await client.query(
+      `ALTER TABLE universities ADD CONSTRAINT universities_short_name_key UNIQUE (short_name);`
+    ).catch(() => { /* already exists — safe to ignore */ });
 
     await client.query('COMMIT');
   } catch (err) {
@@ -220,7 +211,6 @@ const ALL_UNIVERSITIES = [
 ];
 
 async function upsertUniversities() {
-  if (!connectionString) return;
   for (const [shortName, name, city, color, studentCount] of ALL_UNIVERSITIES) {
     await pool.query(`
       INSERT INTO universities (id, name, short_name, city, color, student_count, description)
@@ -245,7 +235,6 @@ async function upsertUniversities() {
 }
 
 async function seedDatabase() {
-  if (!connectionString) return;
 
   await upsertUniversities();
 
