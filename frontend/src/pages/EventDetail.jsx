@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { Icon } from '../components/Icons'
 import toast from 'react-hot-toast'
 
 const TYPE_GRADIENT = {
@@ -102,12 +103,13 @@ export default function EventDetail() {
 
           <div className="flex flex-wrap gap-3">
             {[
-              { icon: '📅', text: `${formatDate(event.date)} à ${event.time}` },
-              { icon: '📍', text: `${event.venue}, ${event.city}` },
-              ...(event.dress_code ? [{ icon: '👔', text: event.dress_code }] : []),
+              { icon: 'calendar', text: `${formatDate(event.date)} à ${event.time}` },
+              { icon: 'location', text: `${event.venue}, ${event.city}` },
+              ...(event.dress_code ? [{ icon: 'shirt', text: event.dress_code }] : []),
             ].map(({ icon, text }) => (
               <span key={text} className="inline-flex items-center gap-1.5 text-sm bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-white/90">
-                {icon} {text}
+                <Icon name={icon} className="w-3.5 h-3.5 opacity-80" />
+                {text}
               </span>
             ))}
           </div>
@@ -126,20 +128,22 @@ export default function EventDetail() {
           {/* Info grid */}
           <div className="card p-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Informations pratiques</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3">
               {[
-                { icon: '📅', label: 'Date', value: formatDate(event.date) },
-                { icon: '🕐', label: 'Heure', value: event.time },
-                { icon: '📍', label: 'Lieu', value: event.venue },
-                { icon: '🏙️', label: 'Ville', value: event.city },
-                { icon: '👔', label: 'Dress code', value: event.dress_code || '—' },
-                { icon: '🎫', label: 'Places restantes', value: `${available} / ${event.capacity}` },
-              ].map(({ icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <span className="text-xl">{icon}</span>
-                  <div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-                    <p className="font-semibold text-gray-800 dark:text-gray-200 capitalize">{value}</p>
+                { icon: 'calendar',    label: 'Date',             value: formatDate(event.date),           color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+                { icon: 'clock',       label: 'Heure',            value: event.time,                       color: 'text-blue-600 dark:text-blue-400',     bg: 'bg-blue-50 dark:bg-blue-900/30'     },
+                { icon: 'location',    label: 'Lieu',             value: event.venue,                      color: 'text-rose-600 dark:text-rose-400',     bg: 'bg-rose-50 dark:bg-rose-900/30'     },
+                { icon: 'building',    label: 'Ville',            value: event.city,                       color: 'text-teal-600 dark:text-teal-400',     bg: 'bg-teal-50 dark:bg-teal-900/30'     },
+                { icon: 'shirt',       label: 'Dress code',       value: event.dress_code || '—',          color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30'   },
+                { icon: 'ticket',      label: 'Places restantes', value: `${available} / ${event.capacity}`, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
+              ].map(({ icon, label, value, color, bg }) => (
+                <div key={label} className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                  <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
+                    <Icon name={icon} className={`w-4.5 h-4.5 ${color}`} strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wide">{label}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate capitalize">{value}</p>
                   </div>
                 </div>
               ))}
@@ -149,7 +153,10 @@ export default function EventDetail() {
           {/* University info */}
           {event.university_name && (
             <div className="card p-6 border-l-4" style={{ borderColor: event.university_color || '#7C3AED' }}>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">🎓 {event.university_name}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <Icon name="graduation" className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                {event.university_name}
+              </h2>
               {event.university_description && (
                 <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{event.university_description}</p>
               )}
@@ -169,7 +176,9 @@ export default function EventDetail() {
 
             {available <= 0 ? (
               <div className="text-center py-8">
-                <div className="text-5xl mb-3">😔</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <Icon name="ticket" className="w-8 h-8 text-gray-400" />
+                </div>
                 <p className="font-bold text-gray-700 dark:text-gray-300">Événement complet</p>
                 <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Il n'y a plus de places disponibles.</p>
               </div>
@@ -223,20 +232,25 @@ export default function EventDetail() {
                 </div>
 
                 {/* FayasCoins preview */}
-                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl px-4 py-2 mb-4">
-                  <span className="text-lg">💎</span>
+                <div className="flex items-center gap-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl px-4 py-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                    <Icon name="gem" className="w-5 h-5 text-purple-600 dark:text-purple-400" strokeWidth={2} />
+                  </div>
                   <div className="flex-1">
                     <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">Vous gagnerez</p>
                     <p className="text-purple-800 dark:text-purple-300 font-extrabold">
                       +{ticketType === 'vip' ? Math.round(unitPrice * quantity * 1.5) : Math.round(unitPrice * quantity)} FayasCoins
                     </p>
                   </div>
-                  <Link to="/loyalty" className="text-xs text-purple-500 dark:text-purple-400 underline">Voir mes points</Link>
+                  <Link to="/loyalty" className="text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+                    Voir mes points
+                  </Link>
                 </div>
 
                 <button onClick={goToCheckout} disabled={purchasing}
                   className="btn-primary w-full text-center justify-center disabled:opacity-60 disabled:cursor-not-allowed">
-                  {isAuthenticated ? '💳 Réserver & Payer' : '🔑 Se connecter pour réserver'}
+                  <Icon name={isAuthenticated ? 'credit_card' : 'lock'} className="w-4 h-4" />
+                  {isAuthenticated ? 'Réserver & Payer' : 'Se connecter pour réserver'}
                 </button>
 
                 {!isAuthenticated && (
@@ -247,8 +261,9 @@ export default function EventDetail() {
                 )}
 
                 {available <= 20 && (
-                  <p className="text-center text-sm text-red-500 dark:text-red-400 mt-3 font-medium">
-                    ⚠️ Plus que {available} places disponibles !
+                  <p className="flex items-center justify-center gap-1.5 text-sm text-red-500 dark:text-red-400 mt-3 font-medium">
+                    <Icon name="alert" className="w-4 h-4" />
+                    Plus que {available} places disponibles !
                   </p>
                 )}
               </>

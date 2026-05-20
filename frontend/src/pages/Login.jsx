@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
+import { Icon } from '../components/Icons'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -38,7 +39,7 @@ export default function Login() {
       <div className="w-full max-w-md animate-fade-up">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center shadow-lg shadow-purple-200 dark:shadow-purple-900/40">
-            <span className="text-2xl">🎫</span>
+            <Icon name="ticket" className="w-7 h-7 text-white" strokeWidth={2} />
           </div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Connexion</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">Accédez à votre espace Fayas</p>
@@ -62,8 +63,8 @@ export default function Login() {
                 <input name="password" type={showPass ? 'text' : 'password'} required className="input pr-12"
                   placeholder="••••••••" value={form.password} onChange={handle} />
                 <button type="button" onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  {showPass ? '🙈' : '👁️'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                  <Icon name={showPass ? 'eye_off' : 'eye'} className="w-4 h-4" />
                 </button>
               </div>
             </div>
