@@ -146,6 +146,7 @@ const ADMIN = {
 
 const USERS = [ADMIN];
 const TICKETS = [];
+const SUBMITTED_EVENTS = []; // Événements soumis par les étudiants (status: pending)
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -217,8 +218,53 @@ app.get('/api/universities/:id', (req, res) => {
 app.get('/api/universities/:id/events', (req, res) => {
   const u = UNIVERSITIES.find(u => u.id === req.params.id);
   if (!u) return res.status(404).json({ error: 'Université non trouvée' });
-  const events = EVENTS.filter(e => e.university_id === u.id);
-  res.json({ university: u, events });
+  const events      = EVENTS.filter(e => e.university_id === u.id && e.status === 'published');
+  const submissions = SUBMITTED_EVENTS.filter(e => e.university_id === u.id);
+  res.json({ university: u, events, submissions });
+});
+
+/* ── Soumission d'événement par un étudiant ── */
+app.post('/api/events/submit', auth, (req, res) => {
+  const {
+    title, type, venue, city, date, time,
+    price_standard, price_vip, capacity,
+    description, dress_code, image_url, university_id,
+  } = req.body;
+
+  if (!title || !type || !venue || !city || !date || !time || !price_standard || !capacity || !description) {
+    return res.status(400).json({ error: 'Champs obligatoires manquants' });
+  }
+
+  const uni = UNIVERSITIES.find(u => u.id === university_id);
+  const submitter = USERS.find(u => u.id === req.user.id);
+
+  const event = {
+    id: uuidv4(),
+    title,
+    description,
+    type: type || 'universite',
+    university_id: university_id || null,
+    university_name: uni?.name || null,
+    university_short_name: uni?.short_name || null,
+    university_color: uni?.color || null,
+    venue,
+    city,
+    date,
+    time,
+    price_standard: Number(price_standard) || 0,
+    price_vip: Number(price_vip) || 0,
+    capacity: Number(capacity) || 100,
+    tickets_sold: 0,
+    dress_code: dress_code || null,
+    image_url: image_url || null,
+    status: 'pending',
+    submitted_by: req.user.id,
+    submitter_name: submitter?.name || 'Étudiant',
+    created_at: new Date().toISOString(),
+  };
+
+  SUBMITTED_EVENTS.push(event);
+  res.status(201).json(event);
 });
 
 /* ── Auth ── */
