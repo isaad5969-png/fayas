@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
-import { CITY_ICONS } from '../components/CityIcons'
+import { CITY_GRAPHICS } from '../components/CityGraphic'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useCountUp } from '../hooks/useCountUp'
 
@@ -227,7 +227,7 @@ export default function Home() {
                                focus:outline-none">
 
                     {/* ── Large decorative landmark (background) ── */}
-                    {(() => { const CityBg = CITY_ICONS[c.name]; return CityBg ? (
+                    {(() => { const CityBg = CITY_GRAPHICS[c.name]; return CityBg ? (
                       <div className="absolute -right-4 -bottom-4 text-white pointer-events-none
                                       opacity-[0.13] group-hover:opacity-[0.2]
                                       group-hover:scale-105 transition-all duration-500
@@ -250,7 +250,7 @@ export default function Home() {
 
                       {/* Top: icon logo + badge */}
                       <div className="flex items-start justify-between">
-                        {(() => { const CityIcon = CITY_ICONS[c.name]; return CityIcon ? (
+                        {(() => { const CityIcon = CITY_GRAPHICS[c.name]; return CityIcon ? (
                           <div className={`bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center
                                            flex-shrink-0 shadow-sm
                                            group-hover:bg-white/30 transition-colors duration-300
