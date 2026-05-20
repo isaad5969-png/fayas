@@ -39,17 +39,17 @@ const STATS = [
 ]
 
 const CITIES = [
-  { name: 'Casablanca',  emoji: '🌆', desc: 'La capitale économique',   gradient: 'from-rose-500 to-orange-500',     count: 6  },
-  { name: 'Marrakech',   emoji: '🌴', desc: 'La ville rouge',           gradient: 'from-amber-500 to-yellow-400',    count: 8  },
-  { name: 'Rabat',       emoji: '🏛️', desc: 'La capitale du Royaume',   gradient: 'from-blue-600 to-cyan-500',       count: 5  },
-  { name: 'Agadir',      emoji: '🏖️', desc: 'La perle du Souss',        gradient: 'from-teal-500 to-emerald-400',    count: 4  },
-  { name: 'Fès',         emoji: '🕌', desc: 'La capitale spirituelle',  gradient: 'from-purple-600 to-violet-500',   count: 3  },
-  { name: 'Tanger',      emoji: '⚓', desc: 'La porte de l\'Europe',    gradient: 'from-sky-500 to-blue-400',        count: 2  },
-  { name: 'Essaouira',   emoji: '🌊', desc: 'La cité des alizés',       gradient: 'from-cyan-600 to-teal-400',       count: 2  },
-  { name: 'Kénitra',     emoji: '🎓', desc: 'La ville étudiante',       gradient: 'from-indigo-500 to-purple-500',   count: 2  },
-  { name: 'Meknès',      emoji: '🦁', desc: 'La ville impériale',       gradient: 'from-orange-600 to-amber-500',    count: 2  },
-  { name: 'Oujda',       emoji: '🎵', desc: 'La porte de l\'Est',       gradient: 'from-pink-600 to-rose-500',       count: 2  },
-  { name: 'Tétouan',     emoji: '🏔️', desc: 'La colombe du Nord',       gradient: 'from-emerald-600 to-green-500',   count: 1  },
+  { name: 'Casablanca', emoji: '🌆', desc: 'La capitale économique',  bg: 'linear-gradient(135deg,#BE123C 0%,#EA580C 100%)', cls: 'col-span-2 md:col-span-2 md:row-span-2', featured: true,  count: 6 },
+  { name: 'Marrakech',  emoji: '🌴', desc: 'La ville rouge',          bg: 'linear-gradient(135deg,#92400E 0%,#D97706 100%)', cls: 'col-span-2 md:col-span-1 md:row-span-2', featured: true,  count: 8 },
+  { name: 'Rabat',      emoji: '🏛️', desc: 'La capitale du Royaume',  bg: 'linear-gradient(135deg,#1D4ED8 0%,#0891B2 100%)', cls: 'col-span-1',                             featured: false, count: 5 },
+  { name: 'Agadir',     emoji: '🏖️', desc: 'La perle du Souss',       bg: 'linear-gradient(135deg,#0D9488 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 4 },
+  { name: 'Fès',        emoji: '🕌', desc: 'La capitale spirituelle', bg: 'linear-gradient(135deg,#5B21B6 0%,#7C3AED 100%)', cls: 'col-span-1',                             featured: false, count: 3 },
+  { name: 'Tanger',     emoji: '⚓',  desc: "La porte de l'Europe",   bg: 'linear-gradient(135deg,#0369A1 0%,#0EA5E9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Essaouira',  emoji: '🌊', desc: 'La cité des alizés',      bg: 'linear-gradient(135deg,#0E7490 0%,#06B6D4 100%)', cls: 'col-span-2',                             featured: false, count: 2 },
+  { name: 'Kénitra',    emoji: '🎓', desc: 'La ville étudiante',      bg: 'linear-gradient(135deg,#3730A3 0%,#6D28D9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Meknès',     emoji: '🦁', desc: 'La ville impériale',      bg: 'linear-gradient(135deg,#C2410C 0%,#F59E0B 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Oujda',      emoji: '🎵', desc: "La porte de l'Est",       bg: 'linear-gradient(135deg,#9D174D 0%,#F43F5E 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Tétouan',    emoji: '🏔️', desc: 'La colombe du Nord',      bg: 'linear-gradient(135deg,#065F46 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 1 },
 ]
 
 const FEATURES = [
@@ -175,51 +175,105 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════
-          CITIES
+          CITIES  — Bento Grid
       ══════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div ref={citiesRef}>
-          <div className={`flex items-end justify-between mb-8 pt-4 transition-all duration-700
-                           ${citiesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div>
-              <p className="text-purple-600 dark:text-purple-400 text-sm font-semibold uppercase tracking-widest mb-2">
-                Destinations
-              </p>
-              <h2 className="section-title">Explorez par ville</h2>
-              <p className="section-sub">Des événements exclusifs dans les plus belles villes du Royaume</p>
-            </div>
-          </div>
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div ref={citiesRef}>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {CITIES.map((c, i) => (
-              <button
-                key={c.name}
-                onClick={() => navigate(`/events?city=${encodeURIComponent(c.name)}`)}
-                className={`group relative overflow-hidden rounded-2xl text-left transition-all duration-500
-                            hover:-translate-y-1.5 hover:shadow-xl
-                            ${citiesVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}
-                style={{ transitionDelay: `${i * 50}ms`, transitionDuration: '600ms' }}>
-                {/* Gradient bg */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${c.gradient} opacity-90
-                                 group-hover:opacity-100 transition-opacity duration-300`} />
-                {/* Shine overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent opacity-0
-                                group-hover:opacity-100 transition-opacity duration-300" />
-                {/* Content */}
-                <div className="relative p-4">
-                  <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform duration-300 origin-left">
-                    {c.emoji}
-                  </span>
-                  <p className="font-bold text-white text-sm leading-tight">{c.name}</p>
-                  <p className="text-white/70 text-[11px] mt-0.5 leading-snug">{c.desc}</p>
-                  <div className="mt-2.5 inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm
-                                  text-white text-[11px] font-semibold px-2 py-0.5 rounded-full">
-                    <Icon name="ticket" className="w-3 h-3" />
-                    {c.count} évt{c.count > 1 ? 's' : ''}
-                  </div>
+            {/* ── Header ── */}
+            <div className={`flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10
+                             transition-all duration-700
+                             ${citiesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <div>
+                <div className="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30
+                                text-purple-600 dark:text-purple-400 text-[11px] font-bold uppercase
+                                tracking-widest px-3.5 py-1.5 rounded-full mb-4
+                                border border-purple-100 dark:border-purple-800">
+                  <Icon name="map" className="w-3 h-3" />
+                  11 destinations au Maroc
                 </div>
-              </button>
-            ))}
+                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                  Explorez par ville
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                  Cliquez sur une ville pour voir ses événements exclusifs
+                </p>
+              </div>
+              <Link to="/events"
+                className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold
+                           text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300
+                           transition-colors group">
+                Tous les événements
+                <Icon name="arrow_right" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            {/* ── Bento Grid ── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[165px] gap-3 md:gap-4">
+              {CITIES.map((c, i) => (
+                <div key={c.name}
+                  className={`${c.cls} transition-all duration-700
+                              ${citiesVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}
+                  style={{ transitionDelay: `${i * 60}ms` }}>
+
+                  <button
+                    onClick={() => navigate(`/events?city=${encodeURIComponent(c.name)}`)}
+                    style={{ background: c.bg }}
+                    className="group relative overflow-hidden rounded-2xl w-full h-full text-left
+                               transition-all duration-300
+                               hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/30
+                               focus:outline-none">
+
+                    {/* Decorative blob top-right */}
+                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10
+                                    group-hover:scale-125 group-hover:bg-white/15
+                                    transition-all duration-700 ease-out" />
+                    {/* Decorative blob bottom-left */}
+                    <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-black/10" />
+                    {/* Shine sweep on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/10 to-white/0
+                                    opacity-0 group-hover:opacity-100
+                                    transition-opacity duration-500 pointer-events-none" />
+
+                    {/* Content */}
+                    <div className="relative h-full flex flex-col justify-between p-4 md:p-5">
+
+                      {/* Top row */}
+                      <div className="flex items-start justify-between">
+                        <span className={`filter drop-shadow-lg
+                                         group-hover:scale-110 transition-transform duration-300 origin-left
+                                         ${c.featured ? 'text-5xl' : 'text-3xl'}`}>
+                          {c.emoji}
+                        </span>
+                        <span className="flex items-center gap-1 bg-black/25 backdrop-blur-sm
+                                         text-white text-[11px] font-bold px-2.5 py-1
+                                         rounded-full border border-white/20">
+                          <Icon name="ticket" className="w-3 h-3 opacity-80" />
+                          {c.count} évt{c.count > 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      {/* Bottom row */}
+                      <div>
+                        <p className={`text-white font-extrabold leading-tight
+                                       ${c.featured ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+                          {c.name}
+                        </p>
+                        <p className="text-white/60 text-xs mt-0.5 hidden sm:block">{c.desc}</p>
+                        <div className="mt-2.5 flex items-center gap-1 text-white/0 group-hover:text-white/90
+                                        text-xs font-semibold -translate-y-1 group-hover:translate-y-0
+                                        transition-all duration-200">
+                          Voir les événements
+                          <Icon name="arrow_right" className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
