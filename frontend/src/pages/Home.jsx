@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
+import { CITY_ICONS } from '../components/CityIcons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useCountUp } from '../hooks/useCountUp'
 
@@ -39,17 +40,17 @@ const STATS = [
 ]
 
 const CITIES = [
-  { name: 'Casablanca', emoji: '🌆', desc: 'La capitale économique',  bg: 'linear-gradient(135deg,#BE123C 0%,#EA580C 100%)', cls: 'col-span-2 md:col-span-2 md:row-span-2', featured: true,  count: 6 },
-  { name: 'Marrakech',  emoji: '🌴', desc: 'La ville rouge',          bg: 'linear-gradient(135deg,#92400E 0%,#D97706 100%)', cls: 'col-span-2 md:col-span-1 md:row-span-2', featured: true,  count: 8 },
-  { name: 'Rabat',      emoji: '🏛️', desc: 'La capitale du Royaume',  bg: 'linear-gradient(135deg,#1D4ED8 0%,#0891B2 100%)', cls: 'col-span-1',                             featured: false, count: 5 },
-  { name: 'Agadir',     emoji: '🏖️', desc: 'La perle du Souss',       bg: 'linear-gradient(135deg,#0D9488 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 4 },
-  { name: 'Fès',        emoji: '🕌', desc: 'La capitale spirituelle', bg: 'linear-gradient(135deg,#5B21B6 0%,#7C3AED 100%)', cls: 'col-span-1',                             featured: false, count: 3 },
-  { name: 'Tanger',     emoji: '⚓',  desc: "La porte de l'Europe",   bg: 'linear-gradient(135deg,#0369A1 0%,#0EA5E9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
-  { name: 'Essaouira',  emoji: '🌊', desc: 'La cité des alizés',      bg: 'linear-gradient(135deg,#0E7490 0%,#06B6D4 100%)', cls: 'col-span-2',                             featured: false, count: 2 },
-  { name: 'Kénitra',    emoji: '🎓', desc: 'La ville étudiante',      bg: 'linear-gradient(135deg,#3730A3 0%,#6D28D9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
-  { name: 'Meknès',     emoji: '🦁', desc: 'La ville impériale',      bg: 'linear-gradient(135deg,#C2410C 0%,#F59E0B 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
-  { name: 'Oujda',      emoji: '🎵', desc: "La porte de l'Est",       bg: 'linear-gradient(135deg,#9D174D 0%,#F43F5E 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
-  { name: 'Tétouan',    emoji: '🏔️', desc: 'La colombe du Nord',      bg: 'linear-gradient(135deg,#065F46 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 1 },
+  { name: 'Casablanca', desc: 'La capitale économique',  bg: 'linear-gradient(135deg,#BE123C 0%,#EA580C 100%)', cls: 'col-span-2 md:col-span-2 md:row-span-2', featured: true,  count: 6 },
+  { name: 'Marrakech',  desc: 'La ville rouge',          bg: 'linear-gradient(135deg,#92400E 0%,#D97706 100%)', cls: 'col-span-2 md:col-span-1 md:row-span-2', featured: true,  count: 8 },
+  { name: 'Rabat',      desc: 'La capitale du Royaume',  bg: 'linear-gradient(135deg,#1D4ED8 0%,#0891B2 100%)', cls: 'col-span-1',                             featured: false, count: 5 },
+  { name: 'Agadir',     desc: 'La perle du Souss',       bg: 'linear-gradient(135deg,#0D9488 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 4 },
+  { name: 'Fès',        desc: 'La capitale spirituelle', bg: 'linear-gradient(135deg,#5B21B6 0%,#7C3AED 100%)', cls: 'col-span-1',                             featured: false, count: 3 },
+  { name: 'Tanger',     desc: "La porte de l'Europe",    bg: 'linear-gradient(135deg,#0369A1 0%,#0EA5E9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Essaouira',  desc: 'La cité des alizés',      bg: 'linear-gradient(135deg,#0E7490 0%,#06B6D4 100%)', cls: 'col-span-2',                             featured: false, count: 2 },
+  { name: 'Kénitra',    desc: 'La ville étudiante',      bg: 'linear-gradient(135deg,#3730A3 0%,#6D28D9 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Meknès',     desc: 'La ville impériale',      bg: 'linear-gradient(135deg,#C2410C 0%,#F59E0B 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Oujda',      desc: "La porte de l'Est",       bg: 'linear-gradient(135deg,#9D174D 0%,#F43F5E 100%)', cls: 'col-span-1',                             featured: false, count: 2 },
+  { name: 'Tétouan',    desc: 'La colombe du Nord',       bg: 'linear-gradient(135deg,#065F46 0%,#10B981 100%)', cls: 'col-span-1',                             featured: false, count: 1 },
 ]
 
 const FEATURES = [
@@ -222,30 +223,41 @@ export default function Home() {
                     style={{ background: c.bg }}
                     className="group relative overflow-hidden rounded-2xl w-full h-full text-left
                                transition-all duration-300
-                               hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/30
+                               hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/35
                                focus:outline-none">
 
-                    {/* Decorative blob top-right */}
-                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10
+                    {/* ── Large decorative landmark (background) ── */}
+                    {(() => { const CityBg = CITY_ICONS[c.name]; return CityBg ? (
+                      <div className="absolute -right-4 -bottom-4 text-white pointer-events-none
+                                      opacity-[0.13] group-hover:opacity-[0.2]
+                                      group-hover:scale-105 transition-all duration-500
+                                      w-[62%] h-[62%]">
+                        <CityBg className="w-full h-full" />
+                      </div>
+                    ) : null; })()}
+
+                    {/* Blob top-right */}
+                    <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-white/10
                                     group-hover:scale-125 group-hover:bg-white/15
                                     transition-all duration-700 ease-out" />
-                    {/* Decorative blob bottom-left */}
-                    <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-black/10" />
-                    {/* Shine sweep on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/10 to-white/0
+                    {/* Shine sweep */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/8 to-white/0
                                     opacity-0 group-hover:opacity-100
                                     transition-opacity duration-500 pointer-events-none" />
 
-                    {/* Content */}
+                    {/* ── Content ── */}
                     <div className="relative h-full flex flex-col justify-between p-4 md:p-5">
 
-                      {/* Top row */}
+                      {/* Top: icon logo + badge */}
                       <div className="flex items-start justify-between">
-                        <span className={`filter drop-shadow-lg
-                                         group-hover:scale-110 transition-transform duration-300 origin-left
-                                         ${c.featured ? 'text-5xl' : 'text-3xl'}`}>
-                          {c.emoji}
-                        </span>
+                        {(() => { const CityIcon = CITY_ICONS[c.name]; return CityIcon ? (
+                          <div className={`bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center
+                                           flex-shrink-0 shadow-sm
+                                           group-hover:bg-white/30 transition-colors duration-300
+                                           ${c.featured ? 'w-12 h-12' : 'w-10 h-10'}`}>
+                            <CityIcon className={`text-white ${c.featured ? 'w-8 h-8' : 'w-6 h-6'}`} />
+                          </div>
+                        ) : null; })()}
                         <span className="flex items-center gap-1 bg-black/25 backdrop-blur-sm
                                          text-white text-[11px] font-bold px-2.5 py-1
                                          rounded-full border border-white/20">
@@ -254,15 +266,17 @@ export default function Home() {
                         </span>
                       </div>
 
-                      {/* Bottom row */}
+                      {/* Bottom: name + desc + CTA */}
                       <div>
-                        <p className={`text-white font-extrabold leading-tight
+                        <p className={`text-white font-extrabold leading-tight tracking-tight
                                        ${c.featured ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
                           {c.name}
                         </p>
                         <p className="text-white/60 text-xs mt-0.5 hidden sm:block">{c.desc}</p>
-                        <div className="mt-2.5 flex items-center gap-1 text-white/0 group-hover:text-white/90
-                                        text-xs font-semibold -translate-y-1 group-hover:translate-y-0
+                        <div className="mt-2.5 flex items-center gap-1
+                                        text-white/0 group-hover:text-white/90
+                                        text-xs font-semibold
+                                        -translate-y-1 group-hover:translate-y-0
                                         transition-all duration-200">
                           Voir les événements
                           <Icon name="arrow_right" className="w-3.5 h-3.5" />
