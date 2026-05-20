@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
@@ -38,6 +38,20 @@ const STATS = [
   { label: 'Billets vendus',num: 2000, suffix: '+', icon: 'ticket',     color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'    },
 ]
 
+const CITIES = [
+  { name: 'Casablanca',  emoji: '🌆', desc: 'La capitale économique',   gradient: 'from-rose-500 to-orange-500',     count: 6  },
+  { name: 'Marrakech',   emoji: '🌴', desc: 'La ville rouge',           gradient: 'from-amber-500 to-yellow-400',    count: 8  },
+  { name: 'Rabat',       emoji: '🏛️', desc: 'La capitale du Royaume',   gradient: 'from-blue-600 to-cyan-500',       count: 5  },
+  { name: 'Agadir',      emoji: '🏖️', desc: 'La perle du Souss',        gradient: 'from-teal-500 to-emerald-400',    count: 4  },
+  { name: 'Fès',         emoji: '🕌', desc: 'La capitale spirituelle',  gradient: 'from-purple-600 to-violet-500',   count: 3  },
+  { name: 'Tanger',      emoji: '⚓', desc: 'La porte de l\'Europe',    gradient: 'from-sky-500 to-blue-400',        count: 2  },
+  { name: 'Essaouira',   emoji: '🌊', desc: 'La cité des alizés',       gradient: 'from-cyan-600 to-teal-400',       count: 2  },
+  { name: 'Kénitra',     emoji: '🎓', desc: 'La ville étudiante',       gradient: 'from-indigo-500 to-purple-500',   count: 2  },
+  { name: 'Meknès',      emoji: '🦁', desc: 'La ville impériale',       gradient: 'from-orange-600 to-amber-500',    count: 2  },
+  { name: 'Oujda',       emoji: '🎵', desc: 'La porte de l\'Est',       gradient: 'from-pink-600 to-rose-500',       count: 2  },
+  { name: 'Tétouan',     emoji: '🏔️', desc: 'La colombe du Nord',       gradient: 'from-emerald-600 to-green-500',   count: 1  },
+]
+
 const FEATURES = [
   { icon: 'tools',  title: 'Self-service',     desc: 'Mettez votre événement en ligne en quelques minutes — gestion des billets, jauges et statistiques.', accent: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
   { icon: 'shield', title: 'Fiable & sécurisé',desc: 'Billets protégés, paiements sécurisés et confirmation instantanée par email.',                         accent: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'       },
@@ -46,12 +60,14 @@ const FEATURES = [
 ]
 
 export default function Home() {
+  const navigate = useNavigate()
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [universities,   setUniversities]   = useState([])
   const [loading,        setLoading]        = useState(true)
 
   // Scroll reveal refs for sections
   const [eventsRef,  eventsVisible]  = useScrollReveal(0.05)
+  const [citiesRef,  citiesVisible]  = useScrollReveal(0.05)
   const [uniRef,     uniVisible]     = useScrollReveal(0.05)
   const [ctaRef,     ctaVisible]     = useScrollReveal(0.2)
 
@@ -155,6 +171,56 @@ export default function Home() {
           {STATS.map((s, i) => (
             <StatItem key={s.label} {...s} delay={i * 80} />
           ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════
+          CITIES
+      ══════════════════════════════════ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div ref={citiesRef}>
+          <div className={`flex items-end justify-between mb-8 pt-4 transition-all duration-700
+                           ${citiesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div>
+              <p className="text-purple-600 dark:text-purple-400 text-sm font-semibold uppercase tracking-widest mb-2">
+                Destinations
+              </p>
+              <h2 className="section-title">Explorez par ville</h2>
+              <p className="section-sub">Des événements exclusifs dans les plus belles villes du Royaume</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {CITIES.map((c, i) => (
+              <button
+                key={c.name}
+                onClick={() => navigate(`/events?city=${encodeURIComponent(c.name)}`)}
+                className={`group relative overflow-hidden rounded-2xl text-left transition-all duration-500
+                            hover:-translate-y-1.5 hover:shadow-xl
+                            ${citiesVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}
+                style={{ transitionDelay: `${i * 50}ms`, transitionDuration: '600ms' }}>
+                {/* Gradient bg */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${c.gradient} opacity-90
+                                 group-hover:opacity-100 transition-opacity duration-300`} />
+                {/* Shine overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent opacity-0
+                                group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Content */}
+                <div className="relative p-4">
+                  <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform duration-300 origin-left">
+                    {c.emoji}
+                  </span>
+                  <p className="font-bold text-white text-sm leading-tight">{c.name}</p>
+                  <p className="text-white/70 text-[11px] mt-0.5 leading-snug">{c.desc}</p>
+                  <div className="mt-2.5 inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm
+                                  text-white text-[11px] font-semibold px-2 py-0.5 rounded-full">
+                    <Icon name="ticket" className="w-3 h-3" />
+                    {c.count} évt{c.count > 1 ? 's' : ''}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 

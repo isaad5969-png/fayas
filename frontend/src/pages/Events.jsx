@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
@@ -20,13 +21,15 @@ const CITIES = [
 ]
 
 export default function Events() {
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [events,      setEvents]      = useState([])
   const [meta,        setMeta]        = useState(null)
   const [loading,     setLoading]     = useState(true)
-  const [type,        setType]        = useState('all')
-  const [city,        setCity]        = useState('all')
-  const [search,      setSearch]      = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [type,        setType]        = useState(searchParams.get('type') || 'all')
+  const [city,        setCity]        = useState(searchParams.get('city') || 'all')
+  const [search,      setSearch]      = useState(searchParams.get('search') || '')
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '')
 
   const [gridRef, gridVisible] = useScrollReveal(0.02)
 
@@ -46,6 +49,15 @@ export default function Events() {
   }, [type, city, search])
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
+
+  // sync URL params when filters change
+  useEffect(() => {
+    const p = {}
+    if (type   !== 'all') p.type   = type
+    if (city   !== 'all') p.city   = city
+    if (search)           p.search = search
+    setSearchParams(p, { replace: true })
+  }, [type, city, search]) // eslint-disable-line
 
   const handleSearch = e => { e.preventDefault(); setSearch(searchInput) }
   const clearSearch  = ()  => { setSearch(''); setSearchInput('') }
