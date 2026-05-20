@@ -254,30 +254,365 @@ async function seedDatabase() {
 
   console.log('[DB] Initialisation des données de démo...');
 
-  const universities = await pool.query(
+  const uniRows = await pool.query(
     `SELECT id, short_name FROM universities WHERE short_name = ANY($1)`,
-    [['UM5', 'UH2C', 'UCA']],
+    [['UM5', 'UH2C', 'UCA', 'USMBA', 'UIT', 'UIZ', 'UAE', 'UMI', 'UH1', 'UM1', 'EMI', 'ENSIAS', 'INPT', 'HEM', 'ISCAE']],
   );
-  const uniMap = Object.fromEntries(universities.rows.map(u => [u.short_name, u.id]));
+  const uniMap = Object.fromEntries(uniRows.rows.map(u => [u.short_name, u.id]));
 
   const adminId = uuidv4();
   await pool.query(`
     INSERT INTO users (id, name, email, password, role)
     VALUES ($1, $2, $3, $4, $5)
-  `, [adminId, 'Admin Billetterie', 'admin@billetterie.ma', await bcrypt.hash('Admin123!', 10), 'admin']);
+  `, [adminId, 'Admin Fayas', 'admin@billetterie.ma', await bcrypt.hash('Admin123!', 10), 'admin']);
 
+  /* ── Images par catégorie ── */
+  const IMG = {
+    concert:    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+    festival:   'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
+    soiree:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+    gala:       'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
+    universite: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
+    rooftop:    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+    gnawa:      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+    beach:      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  };
+
+  /*
+   * Format : [title, type, uni_id, venue, city, date, time,
+   *           std_price, vip_price, capacity, tickets_sold,
+   *           description, dress_code, img_key]
+   */
   const events = [
-    ['Gala de Luxe Casablanca 2026',     'gala',       null,              'Four Seasons Casablanca',        'Casablanca', '2026-06-15', '20:00', 500,  1200, 300,  87],
-    ['Soirée des Étoiles - Marrakech',   'soiree',     null,              'La Mamounia',                    'Marrakech',  '2026-05-30', '21:00', 300,  700,  200,  145],
-    ['Soirée Annuelle UM5 - Rabat',      'universite', uniMap['UM5'],     'Salle des Fêtes Atlas Rabat',    'Rabat',      '2026-06-20', '20:30', 120,  250,  500,  210],
-    ['Gala de Fin d\'Année UH2C 2026',  'universite', uniMap['UH2C'],    'Sofitel Casablanca',              'Casablanca', '2026-07-05', '19:00', 200,  450,  400,  178],
-    ['Nuit Blanche - Marrakech',         'soiree',     null,              'Palais El Badi',                 'Marrakech',  '2026-06-10', '21:30', 350,  800,  150,  98],
-    ['Soirée Étudiante UCA',             'universite', uniMap['UCA'],     'Club Atlas Asni',                'Marrakech',  '2026-06-28', '22:00', 100,  200,  600,  320],
-    ['Gala Élégance - Rabat',            'gala',       null,              'Sofitel Rabat Jardin des Roses', 'Rabat',      '2026-07-12', '19:30', 600,  1500, 250,  62],
-    ['XTRAVAGANZA - Taghazout Festival', 'concert',    null,              'Radisson Blu Taghazout',         'Agadir',     '2026-06-05', '20:00', 400,  900,  1500, 630],
+
+    /* ═══════════════ CASABLANCA ═══════════════ */
+    [
+      'Gala de Luxe Casablanca — Fayas Edition',
+      'gala', null,
+      'Four Seasons Hotel Casablanca', 'Casablanca',
+      '2026-06-15', '20:00', 500, 1200, 300, 87,
+      "Une soirée d'exception orchestrée par Fayas dans l'écrin du Four Seasons. Dîner gastronomique, DJ set exclusif et vue imprenable sur l'Atlantique. Le rendez-vous glamour de l'été casablancais.",
+      'Black tie', 'gala',
+    ],
+    [
+      'UNFREQ × FAYAS — Club Edition',
+      'concert', null,
+      'Mano Club Casablanca', 'Casablanca',
+      '2026-05-31', '22:00', 150, 350, 600, 280,
+      "Fayas s'associe à UNFREQ pour une nuit électronique mémorable au Mano Club. Techno, progressive house et sets back-to-back jusqu'à l'aube. L'expérience sonore ultime à Casablanca.",
+      'Street chic', 'concert',
+    ],
+    [
+      'GAÏA × FAYAS — Sunset Party Ain Diab',
+      'soiree', null,
+      'La Corniche — Ain Diab', 'Casablanca',
+      '2026-06-26', '19:30', 200, 500, 400, 163,
+      "Le coucher de soleil sur l'Atlantique comme toile de fond. Fayas présente GAÏA, une soirée sunset loungeuse où electronic groove et cocktails signature se mêlent à la brise marine de Ain Diab.",
+      'Beach chic', 'rooftop',
+    ],
+    [
+      'OLD SCHOOL R&B BRUNCH × FAYAS',
+      'soiree', null,
+      'Four Seasons Hotel Casablanca', 'Casablanca',
+      '2026-07-04', '13:00', 250, 600, 200, 88,
+      "Fayas réinvente le brunch dominical : soul food, cocktails tropicaux et les plus grands classiques R&B des années 90-2000. Une expérience sensorielle unique en son genre à Casablanca.",
+      'Smart casual', 'rooftop',
+    ],
+    [
+      'Gala de Fin d\'Année UH2C × FAYAS',
+      'universite', uniMap['UH2C'],
+      'Sofitel Casablanca Tour Blanche', 'Casablanca',
+      '2026-07-05', '19:00', 200, 450, 400, 178,
+      "La soirée de fin d'année la plus attendue de l'Université Hassan II. Fayas et l'UH2C s'associent pour une cérémonie mémorable : remises de diplômes, dîner de gala et concert exclusif.",
+      'Smart casual', 'universite',
+    ],
+    [
+      'NEON NIGHTS CASA — Fayas Rave',
+      'concert', null,
+      'Sofitel CFC Casablanca', 'Casablanca',
+      '2026-07-18', '22:00', 180, 420, 500, 201,
+      "Fayas illumine Casablanca : une rave exclusive en mode néon dans le cadre futuriste du CFC. Performances live, mapping vidéo et lineup international pour une nuit que vous n'oublierez pas.",
+      'Neon dress code', 'concert',
+    ],
+
+    /* ═══════════════ MARRAKECH ═══════════════ */
+    [
+      'Soirée des Étoiles — Fayas × La Mamounia',
+      'soiree', null,
+      'La Mamounia Marrakech', 'Marrakech',
+      '2026-05-30', '21:00', 300, 700, 200, 145,
+      "Fayas vous convie à la soirée la plus exclusive de Marrakech, dans les jardins légendaires de La Mamounia. Cocktails de prestige, DJ set ambient et une vue sur l'Atlas sous les étoiles.",
+      'Cocktail chic', 'soiree',
+    ],
+    [
+      'Nuit Blanche — Fayas au Palais El Badi',
+      'soiree', null,
+      'Palais El Badi Marrakech', 'Marrakech',
+      '2026-06-10', '21:30', 350, 800, 300, 98,
+      "Fayas transforme les ruines du Palais El Badi en scène d'art et de musique. Une nuit entière dédiée à la danse, à la culture et à la créativité — la Nuit Blanche façon Fayas.",
+      'Blanc total', 'festival',
+    ],
+    [
+      'ATLAS SOUND × FAYAS — Leone Sessions',
+      'concert', null,
+      'Nikki Beach Marrakech', 'Marrakech',
+      '2026-06-06', '22:00', 250, 600, 800, 345,
+      "Fayas s'invite au Nikki Beach pour une nuit électronique de haute volée. Atlas Sound réunit les meilleurs DJs du circuit underground marocain pour un set marathon face aux montagnes de l'Atlas.",
+      'Club chic', 'concert',
+    ],
+    [
+      'HUSH HUSH × FAYAS — Palais Night',
+      'soiree', null,
+      'Palais Jad Mahal Marrakech', 'Marrakech',
+      '2026-06-13', '22:30', 300, 700, 400, 178,
+      "Le secret est de mise : HUSH HUSH by Fayas investit le Palais Jad Mahal pour une soirée orientale envoûtante. Performances de danse, décors somptueux et musique entre Orient et Occident.",
+      'Oriental chic', 'soiree',
+    ],
+    [
+      'DREAMERS — Soul Awakening × FAYAS',
+      'concert', null,
+      'Fellah Hotel Marrakech', 'Marrakech',
+      '2026-07-10', '20:00', 280, 650, 500, 220,
+      "Fayas présente DREAMERS, un festival artistique immersif au cœur du Fellah Hotel. Art contemporain, musique live, yoga et performances de danse fusionnent en une expérience soul unique.",
+      'Free spirit', 'festival',
+    ],
+    [
+      'GALA DES ATLANTES × FAYAS',
+      'gala', null,
+      'Palais Namaskar Marrakech', 'Marrakech',
+      '2026-07-17', '19:30', 700, 1600, 200, 72,
+      "Fayas présente le gala le plus prestigious de l'été : le Gala des Atlantes au Palais Namaskar. Une célébration fastueuse de l'élégance marocaine avec dîner signature et spectacle vivant.",
+      'Black tie', 'gala',
+    ],
+    [
+      'SuperJazzy × FAYAS — Mādero Sessions',
+      'soiree', null,
+      'Mādero Marrakech', 'Marrakech',
+      '2026-07-24', '21:00', 200, 500, 350, 140,
+      "Fayas et Mādero s'associent pour une soirée jazz-fusion et house au cœur de la palmeraie. SuperJazzy orchestre une programmation unique mêlant saxophone live, beats modernes et ambiance chill.",
+      'Jazz casual', 'soiree',
+    ],
+    [
+      'Soirée Étudiante UCA × FAYAS 2026',
+      'universite', uniMap['UCA'],
+      'Club Atlas Asni Marrakech', 'Marrakech',
+      '2026-06-28', '22:00', 100, 200, 600, 320,
+      "La soirée étudiante de référence à Marrakech. Fayas et l'Université Cadi Ayyad réunissent les étudiants pour une nuit de fête inoubliable au Club Atlas, avec DJ set, photo booth et after-party.",
+      'Smart casual', 'universite',
+    ],
+
+    /* ═══════════════ RABAT ═══════════════ */
+    [
+      'Soirée Annuelle UM5 × FAYAS',
+      'universite', uniMap['UM5'],
+      'Salle des Fêtes Atlas Rabat', 'Rabat',
+      '2026-06-20', '20:30', 120, 250, 500, 210,
+      "Fayas s'associe à l'Université Mohammed V pour la soirée annuelle la plus mémorable. Gala étudiant, cérémonie de distinction et DJ set dans la splendide Salle des Fêtes Atlas de Rabat.",
+      'Smart casual', 'universite',
+    ],
+    [
+      'Gala Élégance × FAYAS — Rabat',
+      'gala', null,
+      'Sofitel Rabat Jardin des Roses', 'Rabat',
+      '2026-07-12', '19:30', 600, 1500, 250, 62,
+      "Dans les jardins enchanteurs du Sofitel Rabat, Fayas orchestre le Gala Élégance : une soirée de prestige alliant gastronomie française et marocaine, musique classique et DJ set de minuit.",
+      'Black tie', 'gala',
+    ],
+    [
+      'ECHO × FAYAS — Oudayas Riverside',
+      'concert', null,
+      'Les Oudayas Rabat', 'Rabat',
+      '2026-06-27', '21:00', 200, 500, 800, 310,
+      "Fayas investit les remparts des Oudayas pour ECHO, une nuit musicale suspendue entre ciel et Atlantique. Deep house, afro-house et techno se mêlent au son des vagues en contrebas.",
+      'Urban chic', 'concert',
+    ],
+    [
+      'JAZZ & ROSES × FAYAS — Sofitel Rabat',
+      'soiree', null,
+      'Sofitel Rabat Jardin des Roses', 'Rabat',
+      '2026-08-07', '20:00', 300, 700, 250, 95,
+      "Fayas transforme le jardin de roses du Sofitel en scène jazz. Quartet live, cuisine fine et cocktails floraux pour une soirée romantique et raffinée au cœur de la capitale du Royaume.",
+      'Floral chic', 'soiree',
+    ],
+    [
+      'Nuit des Grandes Écoles EMI × FAYAS',
+      'universite', uniMap['EMI'],
+      'Sofitel Rabat Jardin des Roses', 'Rabat',
+      '2026-07-03', '20:00', 180, 380, 500, 195,
+      "Fayas et l'EMI célèbrent l'excellence des ingénieurs marocains. Une soirée gala réunissant étudiants, alumni et professeurs pour une nuit de networking, de distinction et de fête.",
+      'Smart casual', 'universite',
+    ],
+
+    /* ═══════════════ AGADIR / TAGHAZOUT ═══════════════ */
+    [
+      'XTRAVAGANZA × FAYAS — Taghazout Bay',
+      'concert', null,
+      'Radisson Blu Taghazout Bay', 'Agadir',
+      '2026-06-05', '20:00', 400, 900, 1500, 630,
+      "Le festival électronique de référence au Maroc fait son grand retour avec Fayas. XTRAVAGANZA réunit sur la plage de Taghazout les meilleurs DJs internationaux pour 2 jours de fête face à l'océan.",
+      'Festival look', 'festival',
+    ],
+    [
+      'LE COMPTOIR ELECTRONIK × FAYAS',
+      'concert', null,
+      'LBO Agadir Beach Club', 'Agadir',
+      '2026-06-19', '22:00', 180, 420, 600, 240,
+      "Fayas apporte l'esprit Comptoir Électronik sur la côte souss. Une nuit de minimal techno et electronic groove dans le cadre unique du LBO Beach Club, les pieds dans le sable.",
+      'Club chic', 'concert',
+    ],
+    [
+      'COASTAL GROOVES × FAYAS — Agadir',
+      'soiree', null,
+      'Sofitel Agadir Royal Bay', 'Agadir',
+      '2026-07-25', '20:30', 220, 550, 500, 198,
+      "Fayas et le Sofitel Royal Bay vous invitent à une soirée beach-chic face à l'Atlantique. Musique lounge, buffet de fruits de mer et cocktails exotiques pour l'expérience côtière ultime de l'été.",
+      'Beach chic', 'beach',
+    ],
+
+    /* ═══════════════ TANGER ═══════════════ */
+    [
+      'VELOCITY FEST × FAYAS — Tanger Bay',
+      'concert', null,
+      'Marina Bay Tanger', 'Tanger',
+      '2026-07-25', '20:00', 300, 700, 1500, 520,
+      "Fayas fait escale à Tanger pour VELOCITY FEST, le festival qui fusionne techno, drum & bass et afrobeats sur les quais de la Marina. Lineup international, scènes multiples et camping VIP.",
+      'Festival look', 'festival',
+    ],
+    [
+      'Soirée Chic du Nord × FAYAS',
+      'soiree', null,
+      'Hilton Tanger City Center', 'Tanger',
+      '2026-07-17', '21:30', 280, 650, 300, 112,
+      "Fayas présente la soirée mondaine de l'été tangerois. Ambiance méditerranéenne, musique lounge et cocktails signature au sommet du Hilton avec une vue panoramique sur le Détroit de Gibraltar.",
+      'Cocktail chic', 'soiree',
+    ],
+
+    /* ═══════════════ ESSAOUIRA ═══════════════ */
+    [
+      'LUMINA FESTIVAL × FAYAS 2026',
+      'concert', null,
+      'Plage d\'Essaouira — Bord de mer', 'Essaouira',
+      '2026-10-01', '17:00', 350, 800, 2500, 0,
+      "Fayas lance LUMINA, le nouveau festival de référence à Essaouira. 4 jours de musique électronique, world music et performances artistiques sur la plage atlantique balayée par les alizés.",
+      'Festival look', 'festival',
+    ],
+    [
+      'GNAWA BLUES NIGHT × FAYAS',
+      'concert', null,
+      'Place Moulay Hassan Essaouira', 'Essaouira',
+      '2026-08-01', '21:00', 150, 350, 1000, 380,
+      "Fayas célèbre l'âme d'Essaouira : une nuit de Gnawa fusionné avec jazz et blues sur la mythique Place Moulay Hassan. Maâlems reconnus, musiciens internationaux et trance collective.",
+      'Free spirit', 'gnawa',
+    ],
+
+    /* ═══════════════ FÈS ═══════════════ */
+    [
+      'Arabian Nights × FAYAS — Fès Médina',
+      'soiree', null,
+      'Riad Fès by Amanjenaee', 'Fès',
+      '2026-07-18', '20:30', 350, 800, 150, 58,
+      "Fayas vous transporte dans les Mille et Une Nuits : dîner marocain gastronomique dans le palais d'un riad fassi, musique andalouse live et hammam privatif pour les guests VIP.",
+      'Oriental chic', 'soiree',
+    ],
+    [
+      'GALA FASSI × FAYAS 2026',
+      'gala', null,
+      'Palais Faraj Fès', 'Fès',
+      '2026-08-07', '19:00', 500, 1200, 150, 0,
+      "Fayas sublime Fès la nuit : le Gala Fassi réunit l'élite du Maroc dans les décors mauresque du Palais Faraj. Dîner de prestige, fantasia et orchestre andalou pour une soirée hors du temps.",
+      'Black tie', 'gala',
+    ],
+    [
+      'Nuit des Grandes Écoles USMBA × FAYAS',
+      'universite', uniMap['USMBA'],
+      'Sofitel Fès Palais Jamai', 'Fès',
+      '2026-06-21', '20:00', 150, 300, 500, 187,
+      "Fayas et l'Université Sidi Mohammed Ben Abdellah célèbrent l'excellence académique. Cérémonie de remise de prix, dîner de gala et soirée dansante dans le cadre prestigieux du Palais Jamai.",
+      'Smart casual', 'universite',
+    ],
+
+    /* ═══════════════ KÉNITRA ═══════════════ */
+    [
+      'Soirée Étudiante UIT × FAYAS',
+      'universite', uniMap['UIT'],
+      'Club Nautique de Kénitra', 'Kénitra',
+      '2026-06-14', '21:00', 80, 160, 400, 165,
+      "Fayas s'invite à l'Ibn Tofail pour la soirée étudiante de fin d'année. Ambiance festive, DJ set et concours de danse sur les rives du Bou Regreg pour clôturer l'année universitaire en beauté.",
+      'Smart casual', 'universite',
+    ],
+    [
+      'RIVERSIDE SOUNDS × FAYAS — Kénitra',
+      'concert', null,
+      'Plage Mehdya Kénitra', 'Kénitra',
+      '2026-07-11', '20:00', 150, 350, 600, 210,
+      "Fayas découvre Kénitra : RIVERSIDE SOUNDS investit la plage sauvage de Mehdya pour une nuit de house, afrobeats et fusion marocaine face à l'Atlantique. Un nouveau rendez-vous estival né par Fayas.",
+      'Beach casual', 'beach',
+    ],
+
+    /* ═══════════════ MEKNÈS ═══════════════ */
+    [
+      'Soirée Annuelle UMI × FAYAS',
+      'universite', uniMap['UMI'],
+      'Hôtel Transatlantique Meknès', 'Meknès',
+      '2026-06-26', '20:00', 100, 200, 350, 142,
+      "Fayas et l'Université Moulay Ismail réunissent les étudiants de Meknès pour la soirée annuelle. DJ set, photo booth Fayas, buffet marocain et remise de prix pour clôturer l'année avec panache.",
+      'Smart casual', 'universite',
+    ],
+    [
+      'GALA ISMAILI × FAYAS — Meknès',
+      'gala', null,
+      'Palais Bassatine Meknès', 'Meknès',
+      '2026-07-31', '19:30', 400, 900, 200, 0,
+      "Fayas met à l'honneur la ville des Ismaïls : un gala de prestige dans le Palais Bassatine avec dîner impérial, fantasia et orchestre andalou. Une ode à la grandeur historique de Meknès.",
+      'Black tie', 'gala',
+    ],
+
+    /* ═══════════════ OUJDA ═══════════════ */
+    [
+      'ORIENTAL GROOVE × FAYAS — Oujda',
+      'concert', null,
+      'Complexe Culturel Mohammed VI Oujda', 'Oujda',
+      '2026-08-14', '21:00', 150, 350, 800, 0,
+      "Fayas traverse le pays pour ORIENTAL GROOVE, une nuit musicale exclusive à Oujda mêlant raï moderne, chaabi électronique et beats orientaux. Le rendez-vous estival du nord-est marocain.",
+      'Urban chic', 'concert',
+    ],
+    [
+      'Soirée UM1 × FAYAS 2026',
+      'universite', uniMap['UM1'],
+      'Hôtel Al Manar Oujda', 'Oujda',
+      '2026-07-03', '20:00', 80, 160, 350, 118,
+      "La grande soirée de fin d'année de l'Université Mohammed 1er, organisée avec Fayas. Ambiance conviviale, DJ set, and a night full of memories at the gateway to eastern Morocco.",
+      'Smart casual', 'universite',
+    ],
+
+    /* ═══════════════ AGADIR — UIZ ═══════════════ */
+    [
+      'Gala Ibn Zohr × FAYAS 2026',
+      'universite', uniMap['UIZ'],
+      'Sofitel Agadir Thalassa', 'Agadir',
+      '2026-07-09', '19:30', 150, 300, 450, 162,
+      "Fayas et l'Université Ibn Zohr s'unissent pour le Gala de fin d'année le plus ensoleillé du Maroc. Vue sur l'Atlantique, dîner gastronomique et DJ set face aux palmiers d'Agadir.",
+      'Smart casual', 'universite',
+    ],
+
+    /* ═══════════════ TÉTOUAN — UAE ═══════════════ */
+    [
+      'Soirée Étudiante UAE × FAYAS',
+      'universite', uniMap['UAE'],
+      'Club Méditerranée Tétouan', 'Tétouan',
+      '2026-06-19', '21:00', 80, 160, 400, 148,
+      "Fayas et l'Université Abdelmalek Essaâdi célèbrent la fin d'année entre deux rives : soirée méditerranéenne sur fond de musique andalouse et électro, avec la mer comme horizon.",
+      'Smart casual', 'universite',
+    ],
   ];
 
   for (const e of events) {
+    const [
+      title, type, uniId, venue, city, date, time,
+      stdPrice, vipPrice, capacity, ticketsSold,
+      description, dressCode, imgKey,
+    ] = e;
+
     await pool.query(`
       INSERT INTO events (
         id, title, description, type, university_id, venue, city, date, time,
@@ -285,14 +620,14 @@ async function seedDatabase() {
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'published',$16)
     `, [
-      uuidv4(), e[0], `Réservez vos billets pour ${e[0]}.`, e[1], e[2], e[3], e[4],
-      e[5], e[6], e[7], e[8], e[9], e[10], 'Smart casual',
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+      uuidv4(), title, description, type, uniId || null, venue, city, date, time,
+      stdPrice, vipPrice, capacity, ticketsSold, dressCode,
+      IMG[imgKey] || IMG.soiree,
       adminId,
     ]);
   }
 
-  console.log(`[DB] Données de démo: ${ALL_UNIVERSITIES.length} universités, ${events.length} événements, 1 admin`);
+  console.log(`[DB] Seed: ${ALL_UNIVERSITIES.length} universités, ${events.length} événements Fayas, 1 admin`);
 }
 
 async function init() {
