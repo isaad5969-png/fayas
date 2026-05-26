@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { Icon } from '../components/Icons'
+import FavoriteButton from '../components/FavoriteButton'
+import ShareButton from '../components/ShareButton'
 import toast from 'react-hot-toast'
 
 const TYPE_GRADIENT = {
@@ -47,7 +49,7 @@ export default function EventDetail() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0f] transition-colors duration-300">
       <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -59,7 +61,7 @@ export default function EventDetail() {
   const gradientClass = !event.university_color ? TYPE_GRADIENT[event.type] || TYPE_GRADIENT.autre : ''
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] transition-colors duration-300">
       {/* ── Hero ── */}
       <div className="relative min-h-[420px] flex items-end overflow-hidden text-white">
 
@@ -87,9 +89,17 @@ export default function EventDetail() {
 
         {/* Content */}
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-24 animate-fade-up">
-          <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-            ← Retour aux événements
-          </Link>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+              ← Retour aux événements
+            </Link>
+
+            {/* Quick actions: favorite + share */}
+            <div className="relative flex items-center gap-2 h-10">
+              <FavoriteButton eventId={event.id} eventTitle={event.title} variant="hero" />
+              <ShareButton variant="hero" eventTitle={event.title} />
+            </div>
+          </div>
 
           {event.university_name && (
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-sm mb-4">
@@ -137,7 +147,7 @@ export default function EventDetail() {
                 { icon: 'shirt',       label: 'Dress code',       value: event.dress_code || '—',          color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30'   },
                 { icon: 'ticket',      label: 'Places restantes', value: `${available} / ${event.capacity}`, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
               ].map(({ icon, label, value, color, bg }) => (
-                <div key={label} className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                <div key={label} className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-[#1a1a24] rounded-xl border border-gray-100 dark:border-white/[0.06]">
                   <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
                     <Icon name={icon} className={`w-4.5 h-4.5 ${color}`} strokeWidth={2} />
                   </div>
@@ -176,7 +186,7 @@ export default function EventDetail() {
 
             {available <= 0 ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 dark:bg-[#1a1a24] flex items-center justify-center">
                   <Icon name="ticket" className="w-8 h-8 text-gray-400" />
                 </div>
                 <p className="font-bold text-gray-700 dark:text-gray-300">Événement complet</p>
@@ -195,7 +205,7 @@ export default function EventDetail() {
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                         ticketType === opt.value
                           ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700'
+                          : 'border-gray-200 dark:border-white/[0.08] hover:border-purple-200 dark:hover:border-violet-500/50'
                       }`}>
                       <input type="radio" name="ticketType" value={opt.value} checked={ticketType === opt.value}
                         onChange={e => setTicketType(e.target.value)} className="accent-purple-600" />
@@ -213,10 +223,10 @@ export default function EventDetail() {
                   <label className="label">Nombre de billets</label>
                   <div className="flex items-center gap-3">
                     <button onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-gray-700 font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300">−</button>
+                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-white/[0.08] font-bold text-lg hover:bg-gray-50 dark:hover:bg-[#1a1a24] transition-colors text-gray-700 dark:text-gray-300">−</button>
                     <span className="w-12 text-center font-bold text-xl text-gray-900 dark:text-white">{quantity}</span>
                     <button onClick={() => setQuantity(q => Math.min(available, q + 1))}
-                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-gray-700 font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300">+</button>
+                      className="w-10 h-10 rounded-xl border border-gray-300 dark:border-white/[0.08] font-bold text-lg hover:bg-gray-50 dark:hover:bg-[#1a1a24] transition-colors text-gray-700 dark:text-gray-300">+</button>
                   </div>
                 </div>
 

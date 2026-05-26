@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 const initTheme = () => {
   const saved = localStorage.getItem('fayas-theme')
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const dark = saved === 'dark' || (!saved && prefersDark)
+  const dark = saved !== 'light' // dark by default
   document.documentElement.classList.toggle('dark', dark)
   return dark
 }

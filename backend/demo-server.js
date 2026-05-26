@@ -23,47 +23,86 @@ app.use(cors({ origin: '*' }));
 ───────────────────────────────────────── */
 
 const IMG = {
-  concert:    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
-  festival:   'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
-  soiree:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
-  gala:       'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
-  universite: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
-  rooftop:    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
-  gnawa:      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
-  beach:      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  concert:      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+  festival:     'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
+  soiree:       'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+  gala:         'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
+  universite:   'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
+  rooftop:      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+  gnawa:        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+  beach:        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  // ── Images réelles Tidar.ma ──
+  moga_ess:     'https://tidar.ma/uploads/1778759182.png',
+  santablanca:  'https://tidar.ma/uploads/1779724667.png',
+  gate_bouznika:'https://tidar.ma/uploads/1779713184.png',
+  superjazzy:   'https://tidar.ma/uploads/1777980600.jpg',
+  alex_leone:   'https://tidar.ma/uploads/1776862960.png',
+  echo7000:     'https://tidar.ma/uploads/1777640840.png',
+  backtohouse:  'https://tidar.ma/uploads/1779480780.jpg',
+  xtravaganza:  'https://tidar.ma/uploads/1779733241.png',
+  velocity:     'https://tidar.ma/uploads/1779189249.png',
+  dreamers:     'https://tidar.ma/uploads/1775128024.png',
+  darna:        'https://tidar.ma/uploads/1778238231.png',
 };
 
+/* ── Coordonnées géographiques pour les marqueurs carte ── */
+const CITY_COORDS_SERVER = {
+  Casablanca:   [33.5731, -7.5898],
+  Marrakech:    [31.6295, -7.9811],
+  Rabat:        [34.0209, -6.8416],
+  Agadir:       [30.4202, -9.5982],
+  'Fès':        [34.0181, -5.0078],
+  Tanger:       [35.7595, -5.8340],
+  Essaouira:    [31.5085, -9.7595],
+  'Kénitra':    [34.2610, -6.5802],
+  'Meknès':     [33.8935, -5.5473],
+  Oujda:        [34.6867, -1.9114],
+  'Tétouan':    [35.5785, -5.3684],
+  Dakhla:       [23.7136, -15.9355],
+  Ifrane:       [33.5228, -5.1097],
+  'El Jadida':  [33.2316, -8.5007],
+  'Ben Guerir': [32.2352, -7.9560],
+  Bouznika:     [33.7917, -7.1589],
+};
+
+/* Hash déterministe pour décaler les marqueurs de la même ville */
+function geoHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) & 0x7fffffff;
+  return h;
+}
+
 const UNIVERSITIES = [
-  { id: uuidv4(), short_name: 'UM5',        name: 'Université Mohammed V',                    city: 'Rabat',       color: '#7C3AED', student_count: 85000  },
-  { id: uuidv4(), short_name: 'UH2C',       name: 'Université Hassan II',                     city: 'Casablanca',  color: '#DC2626', student_count: 120000 },
-  { id: uuidv4(), short_name: 'UCA',        name: 'Université Cadi Ayyad',                    city: 'Marrakech',   color: '#D97706', student_count: 95000  },
-  { id: uuidv4(), short_name: 'USMBA',      name: 'Université Sidi Mohammed Ben Abdellah',    city: 'Fès',         color: '#6D28D9', student_count: 80000  },
-  { id: uuidv4(), short_name: 'UIT',        name: 'Université Ibn Tofail',                    city: 'Kénitra',     color: '#059669', student_count: 45000  },
-  { id: uuidv4(), short_name: 'UIZ',        name: 'Université Ibn Zohr',                      city: 'Agadir',      color: '#0284C7', student_count: 60000  },
-  { id: uuidv4(), short_name: 'UAE',        name: 'Université Abdelmalek Essaâdi',            city: 'Tétouan',     color: '#BE185D', student_count: 55000  },
-  { id: uuidv4(), short_name: 'UMI',        name: 'Université Moulay Ismail',                 city: 'Meknès',      color: '#B45309', student_count: 40000  },
-  { id: uuidv4(), short_name: 'UH1',        name: 'Université Hassan 1er',                    city: 'Settat',      color: '#065F46', student_count: 35000  },
-  { id: uuidv4(), short_name: 'UM1',        name: 'Université Mohammed 1er',                  city: 'Oujda',       color: '#1D4ED8', student_count: 50000  },
-  { id: uuidv4(), short_name: 'UCD',        name: 'Université Chouaib Doukkali',              city: 'El Jadida',   color: '#0891B2', student_count: 30000  },
-  { id: uuidv4(), short_name: 'USMS',       name: 'Université Sultan Moulay Slimane',         city: 'Béni Mellal', color: '#7C2D8A', student_count: 35000  },
-  { id: uuidv4(), short_name: 'UAQ',        name: 'Université Al Quaraouiyine',               city: 'Fès',         color: '#92400E', student_count: 10000  },
-  { id: uuidv4(), short_name: 'EMI',        name: "École Mohammadia d'Ingénieurs",            city: 'Rabat',       color: '#1E40AF', student_count: 3000   },
-  { id: uuidv4(), short_name: 'ENSIAS',     name: 'ENSIAS',                                   city: 'Rabat',       color: '#4338CA', student_count: 1500   },
-  { id: uuidv4(), short_name: 'INPT',       name: 'Institut National des P&T',               city: 'Rabat',       color: '#0F766E', student_count: 2000   },
-  { id: uuidv4(), short_name: 'INSEA',      name: 'INSEA',                                   city: 'Rabat',       color: '#854D0E', student_count: 1200   },
-  { id: uuidv4(), short_name: 'EHTP',       name: 'École Hassania des Travaux Publics',      city: 'Casablanca',  color: '#9D174D', student_count: 1500   },
-  { id: uuidv4(), short_name: 'IAV',        name: 'IAV Hassan II',                           city: 'Rabat',       color: '#166534', student_count: 3000   },
-  { id: uuidv4(), short_name: 'ISCAE',      name: 'ISCAE',                                   city: 'Casablanca',  color: '#1E3A5F', student_count: 4000   },
-  { id: uuidv4(), short_name: 'HEM',        name: 'HEM Business School',                     city: 'Casablanca',  color: '#7E22CE', student_count: 8000   },
-  { id: uuidv4(), short_name: 'ENCG-CASA',  name: 'ENCG Casablanca',                         city: 'Casablanca',  color: '#0E4F8B', student_count: 3000   },
-  { id: uuidv4(), short_name: 'ENCG-FES',   name: 'ENCG Fès',                                city: 'Fès',         color: '#3730A3', student_count: 2500   },
-  { id: uuidv4(), short_name: 'UIR',        name: 'Université Internationale de Rabat',      city: 'Rabat',       color: '#0369A1', student_count: 8000   },
-  { id: uuidv4(), short_name: 'UM6P',       name: 'Université Mohammed VI Polytechnique',    city: 'Ben Guerir',  color: '#374151', student_count: 3000   },
-  { id: uuidv4(), short_name: 'UAA',        name: 'Université Al Akhawayn',                  city: 'Ifrane',      color: '#B91C1C', student_count: 2000   },
-  { id: uuidv4(), short_name: 'UIC',        name: 'Université Internationale de Casablanca', city: 'Casablanca',  color: '#0E7490', student_count: 5000   },
-  { id: uuidv4(), short_name: 'UEMF',       name: 'Université Euro-Méditerranéenne de Fès',  city: 'Fès',         color: '#1A56DB', student_count: 3000   },
-  { id: uuidv4(), short_name: 'UPM',        name: 'Université Privée de Marrakech',          city: 'Marrakech',   color: '#C2410C', student_count: 4000   },
-  { id: uuidv4(), short_name: 'MUNDIAPOLIS',name: 'Université Mundiapolis',                  city: 'Casablanca',  color: '#4B5563', student_count: 6000   },
+  { id: uuidv4(), short_name: 'UM5',        name: 'Université Mohammed V',                    city: 'Rabat',       color: '#7C3AED', student_count: 85000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Mohammed_V_University_Logo.png/250px-Mohammed_V_University_Logo.png' },
+  { id: uuidv4(), short_name: 'UH2C',       name: 'Université Hassan II',                     city: 'Casablanca',  color: '#DC2626', student_count: 120000, logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/UH2-logo.png/250px-UH2-logo.png' },
+  { id: uuidv4(), short_name: 'UCA',        name: 'Université Cadi Ayyad',                    city: 'Marrakech',   color: '#D97706', student_count: 95000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Universite_Cadi_Ayyad.png/250px-Universite_Cadi_Ayyad.png' },
+  { id: uuidv4(), short_name: 'USMBA',      name: 'Université Sidi Mohammed Ben Abdellah',    city: 'Fès',         color: '#6D28D9', student_count: 80000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_SIDI_MOHAMMED_BEN_ABBEDELLAH.jpg/250px-University_SIDI_MOHAMMED_BEN_ABBEDELLAH.jpg' },
+  { id: uuidv4(), short_name: 'UIT',        name: 'Université Ibn Tofail',                    city: 'Kénitra',     color: '#059669', student_count: 45000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/1/18/%D8%AC%D8%A7%D9%85%D8%B9%D8%A9_%D8%A5%D8%A8%D9%86_%D8%B7%D9%81%D9%8A%D9%84.png' },
+  { id: uuidv4(), short_name: 'UIZ',        name: 'Université Ibn Zohr',                      city: 'Agadir',      color: '#0284C7', student_count: 60000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/b/b0/Logo-UIZ.jpg' },
+  { id: uuidv4(), short_name: 'UAE',        name: 'Université Abdelmalek Essaâdi',            city: 'Tétouan',     color: '#BE185D', student_count: 55000,  logo_url: 'https://upload.wikimedia.org/wikipedia/en/3/35/Abdelmalek_Essaadi_University.png' },
+  { id: uuidv4(), short_name: 'UMI',        name: 'Université Moulay Ismail',                 city: 'Meknès',      color: '#B45309', student_count: 40000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Logo-umi.png' },
+  { id: uuidv4(), short_name: 'UH1',        name: 'Université Hassan 1er',                    city: 'Settat',      color: '#065F46', student_count: 35000,  logo_url: 'https://upload.wikimedia.org/wikipedia/fr/thumb/3/38/Universite-Hassan-1er-settat.PNG/330px-Universite-Hassan-1er-settat.PNG' },
+  { id: uuidv4(), short_name: 'UM1',        name: 'Université Mohammed 1er',                  city: 'Oujda',       color: '#1D4ED8', student_count: 50000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Logo_de_l%27Universit%C3%A9_Mohammed_Premier.svg' },
+  { id: uuidv4(), short_name: 'UCD',        name: 'Université Chouaib Doukkali',              city: 'El Jadida',   color: '#0891B2', student_count: 30000,  logo_url: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Logo-UCD.jpg' },
+  { id: uuidv4(), short_name: 'USMS',       name: 'Université Sultan Moulay Slimane',         city: 'Béni Mellal', color: '#7C2D8A', student_count: 35000,  logo_url: null },
+  { id: uuidv4(), short_name: 'UAQ',        name: 'Université Al Quaraouiyine',               city: 'Fès',         color: '#92400E', student_count: 10000,  logo_url: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/37/University_of_Al_Quaraouiyine_logo.svg/250px-University_of_Al_Quaraouiyine_logo.svg.png' },
+  { id: uuidv4(), short_name: 'EMI',        name: "École Mohammadia d'Ingénieurs",            city: 'Rabat',       color: '#1E40AF', student_count: 3000,   logo_url: 'https://upload.wikimedia.org/wikipedia/fr/thumb/0/05/EMI.PNG/250px-EMI.PNG' },
+  { id: uuidv4(), short_name: 'ENSIAS',     name: 'ENSIAS',                                   city: 'Rabat',       color: '#4338CA', student_count: 1500,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/1/13/Ensias2.jpg' },
+  { id: uuidv4(), short_name: 'INPT',       name: 'Institut National des P&T',               city: 'Rabat',       color: '#0F766E', student_count: 2000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Logo_inpt.PNG/250px-Logo_inpt.PNG' },
+  { id: uuidv4(), short_name: 'INSEA',      name: 'INSEA',                                   city: 'Rabat',       color: '#854D0E', student_count: 1200,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/0/05/INSEA_logo.png' },
+  { id: uuidv4(), short_name: 'EHTP',       name: 'École Hassania des Travaux Publics',      city: 'Casablanca',  color: '#9D174D', student_count: 1500,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/9/91/LogoEHTP.jpg' },
+  { id: uuidv4(), short_name: 'IAV',        name: 'IAV Hassan II',                           city: 'Rabat',       color: '#166534', student_count: 3000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Logo_iav.png' },
+  { id: uuidv4(), short_name: 'ISCAE',      name: 'ISCAE',                                   city: 'Casablanca',  color: '#1E3A5F', student_count: 4000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Logo_groupe_ISCAE.jpg' },
+  { id: uuidv4(), short_name: 'HEM',        name: 'HEM Business School',                     city: 'Casablanca',  color: '#7E22CE', student_count: 8000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/7/76/Logo_HEM.svg' },
+  { id: uuidv4(), short_name: 'ENCG-CASA',  name: 'ENCG Casablanca',                         city: 'Casablanca',  color: '#0E4F8B', student_count: 3000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/6/60/ENCG-Casablanca.png' },
+  { id: uuidv4(), short_name: 'ENCG-FES',   name: 'ENCG Fès',                                city: 'Fès',         color: '#3730A3', student_count: 2500,   logo_url: null },
+  { id: uuidv4(), short_name: 'UIR',        name: 'Université Internationale de Rabat',      city: 'Rabat',       color: '#0369A1', student_count: 8000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/4/46/LOGO_UIR.jpg' },
+  { id: uuidv4(), short_name: 'UM6P',       name: 'Université Mohammed VI Polytechnique',    city: 'Ben Guerir',  color: '#374151', student_count: 3000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/1/15/UM6P-Universit%C3%A9-Mohamed-VI-polytechnique.png' },
+  { id: uuidv4(), short_name: 'UAA',        name: 'Université Al Akhawayn',                  city: 'Ifrane',      color: '#B91C1C', student_count: 2000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Al_Akhawayn_logo.jpg' },
+  { id: uuidv4(), short_name: 'UIC',        name: 'Université Internationale de Casablanca', city: 'Casablanca',  color: '#0E7490', student_count: 5000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Universit%C3%A9_Internationale_de_Casablanca.jpg' },
+  { id: uuidv4(), short_name: 'UEMF',       name: 'Université Euro-Méditerranéenne de Fès',  city: 'Fès',         color: '#1A56DB', student_count: 3000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Logo_Universit%C3%A9_Euromed_de_F%C3%A8s.png' },
+  { id: uuidv4(), short_name: 'UPM',        name: 'Université Privée de Marrakech',          city: 'Marrakech',   color: '#C2410C', student_count: 4000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/8/8e/LOGO_UPM_-_UNIVERSITE_PRIVEE_DE_MARRAKECH.jpg' },
+  { id: uuidv4(), short_name: 'MUNDIAPOLIS',name: 'Université Mundiapolis',                  city: 'Casablanca',  color: '#4B5563', student_count: 6000,   logo_url: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Mundiapolislogo.gif' },
 ];
 
 const uniMap = Object.fromEntries(UNIVERSITIES.map(u => [u.short_name, u]));
@@ -71,6 +110,10 @@ const uniMap = Object.fromEntries(UNIVERSITIES.map(u => [u.short_name, u]));
 /* ── Génération des événements ── */
 function makeEvent(title, type, uniShort, venue, city, date, time, std, vip, cap, sold, desc, dress, imgKey) {
   const uni = uniShort ? uniMap[uniShort] : null;
+  const base = CITY_COORDS_SERVER[city] || [31.7917, -7.0926];
+  const h = geoHash(title);
+  const lat = +(base[0] + ((h & 0x3fff) / 0x3fff - 0.5) * 0.05).toFixed(6);
+  const lng = +(base[1] + (((h >> 14) & 0x3fff) / 0x3fff - 0.5) * 0.05).toFixed(6);
   return {
     id: uuidv4(), title, description: desc, type,
     university_id: uni?.id || null,
@@ -82,6 +125,7 @@ function makeEvent(title, type, uniShort, venue, city, date, time, std, vip, cap
     capacity: cap, tickets_sold: sold,
     dress_code: dress,
     image_url: IMG[imgKey] || IMG.soiree,
+    lat, lng,
     status: 'published',
     created_at: new Date().toISOString(),
   };
@@ -111,15 +155,15 @@ const EVENTS = [
   makeEvent('JAZZ & ROSES × FAYAS — Sofitel Rabat','soiree',null,'Sofitel Rabat Jardin des Roses','Rabat','2026-08-07','20:00',300,700,250,95,"Fayas transforme le jardin de roses du Sofitel en scène jazz. Quartet live, cuisine fine et cocktails floraux.","Floral chic",'soiree'),
   makeEvent('Nuit des Grandes Écoles EMI × FAYAS','universite','EMI','Sofitel Rabat Jardin des Roses','Rabat','2026-07-03','20:00',180,380,500,195,"Fayas et l'EMI célèbrent l'excellence des ingénieurs marocains. Gala étudiant, distinction et DJ set.","Smart casual",'universite'),
   // ── AGADIR / TAGHAZOUT ──
-  makeEvent('XTRAVAGANZA × FAYAS — Taghazout Bay','concert',null,'Radisson Blu Taghazout Bay','Agadir','2026-06-05','20:00',400,900,1500,630,"Le festival électronique de référence au Maroc fait son grand retour avec Fayas sur la plage de Taghazout.","Festival look",'festival'),
+  makeEvent('XTRAVAGANZA — Taghazout Bay','festival',null,'Radisson Blu Resort Taghazout Bay Surf Village','Agadir','2026-06-05','20:00',400,900,1500,630,"Festival immersif alliant musique, costumes, maquillage UV et décors féeriques. Choisissez votre élément : Eau (bleu/violet), Terre (vert/brun), Air (blanc), Feu (rouge/jaune). Lineup : Andrea Oliva, Joris Delacroix, Joachim Pastor, Caiiro.","Costume élémentaire",'xtravaganza'),
   makeEvent('LE COMPTOIR ELECTRONIK × FAYAS','concert',null,'LBO Agadir Beach Club','Agadir','2026-06-19','22:00',180,420,600,240,"Fayas apporte l'esprit Comptoir Électronik sur la côte souss. Minimal techno et electronic groove les pieds dans le sable.","Club chic",'concert'),
   makeEvent('COASTAL GROOVES × FAYAS — Agadir','soiree',null,'Sofitel Agadir Royal Bay','Agadir','2026-07-25','20:30',220,550,500,198,"Fayas et le Sofitel Royal Bay vous invitent à une soirée beach-chic face à l'Atlantique.","Beach chic",'beach'),
   makeEvent('Gala Ibn Zohr × FAYAS 2026','universite','UIZ','Sofitel Agadir Thalassa','Agadir','2026-07-09','19:30',150,300,450,162,"Fayas et l'Université Ibn Zohr s'unissent pour le Gala de fin d'année le plus ensoleillé du Maroc.","Smart casual",'universite'),
   // ── TANGER ──
-  makeEvent('VELOCITY FEST × FAYAS — Tanger Bay','concert',null,'Marina Bay Tanger','Tanger','2026-07-25','20:00',300,700,1500,520,"Fayas fait escale à Tanger pour VELOCITY FEST, le festival qui fusionne techno, drum & bass et afrobeats sur les quais de la Marina.","Festival look",'festival'),
+  makeEvent('VELOCITY FEST — Tanger','festival',null,'Bord de mer — Tanger','Tanger','2026-07-25','12:00',300,700,1500,520,"Revival de Made in Velocity avec un concept entièrement nouveau, une nouvelle énergie et une nouvelle destination. Musique, off-events, activités curatoriales et expériences au-delà de la piste de danse. Lineup à annoncer.","Come as you are",'velocity'),
   makeEvent('Soirée Chic du Nord × FAYAS','soiree',null,'Hilton Tanger City Center','Tanger','2026-07-17','21:30',280,650,300,112,"Fayas présente la soirée mondaine de l'été tangerois. Vue panoramique sur le Détroit de Gibraltar.","Cocktail chic",'soiree'),
   // ── ESSAOUIRA ──
-  makeEvent('LUMINA FESTIVAL × FAYAS 2026','concert',null,"Plage d'Essaouira",'Essaouira','2026-10-01','17:00',350,800,2500,0,"Fayas lance LUMINA, le nouveau festival de référence à Essaouira. 4 jours de musique sur la plage atlantique.","Festival look",'festival'),
+  makeEvent('MOGA ESSAOUIRA 2026','festival',null,"Hôtel Le Golf d'Essaouira & Spa",'Essaouira','2026-09-30','15:00',800,2000,2500,0,"Le festival boutique électronique d'Essaouira fête ses 10 ans. 5 jours de musique, art, mouvement et expériences inoubliables — Atlantic vibes. MOGA OFF (30 sept-1er oct) gratuit, MOGA IN (2-4 oct) sur billet. Lineup : Jamie Jones, The Martinez Brothers, Rhadoo, Fort Romeau.","Come as you are",'moga_ess'),
   makeEvent('GNAWA BLUES NIGHT × FAYAS','concert',null,'Place Moulay Hassan Essaouira','Essaouira','2026-08-01','21:00',150,350,1000,380,"Fayas célèbre l'âme d'Essaouira : une nuit de Gnawa fusionné avec jazz et blues sur la mythique Place Moulay Hassan.","Free spirit",'gnawa'),
   // ── FÈS ──
   makeEvent('Arabian Nights × FAYAS — Fès Médina','soiree',null,'Riad Fès by Amanjenaee','Fès','2026-07-18','20:30',350,800,150,58,"Fayas vous transporte dans les Mille et Une Nuits : dîner marocain dans un riad fassi, musique andalouse live.","Oriental chic",'soiree'),
@@ -136,6 +180,23 @@ const EVENTS = [
   makeEvent('Soirée UM1 × FAYAS 2026','universite','UM1','Hôtel Al Manar Oujda','Oujda','2026-07-03','20:00',80,160,350,118,"La grande soirée de fin d'année de l'Université Mohammed 1er, organisée avec Fayas à la porte de l'orient.","Smart casual",'universite'),
   // ── TÉTOUAN ──
   makeEvent('Soirée Étudiante UAE × FAYAS','universite','UAE','Club Méditerranée Tétouan','Tétouan','2026-06-19','21:00',80,160,400,148,"Fayas et l'UAE célèbrent la fin d'année entre deux rives, musique andalouse et électro face à la mer.","Smart casual",'universite'),
+  // ── ÉVÉNEMENTS TIDAR.MA (réels) ──
+  makeEvent('SANTABLANCA — Fan Zone & Club','soiree',null,'Gaia Beach Casablanca','Casablanca','2026-06-13','16:00',200,450,800,312,"Fan zone géante pour Maroc vs Brésil : giant screen, DJ sets house jusqu\'à 4h du matin, food & drinks et ambiance beach sunset. Le match commence, la nuit continue.","Beach chic",'santablanca'),
+  makeEvent('GATE TO BOUZNIKA','soiree',null,'Eden Island Beach Club','Bouznika','2026-06-21','17:00',150,300,600,195,"Sunset celebration face à l\'Atlantique : Afro House, Latin House, ocean vibes et tropical energy. Headliner : OMED. Une escapade hors du temps entre rythme et connexion.","Well dressed",'gate_bouznika'),
+  makeEvent('SUPERJAZZY × MĀDERO — Marrakech','concert',null,'Villa Marco Au jardin des senteurs','Marrakech','2026-06-05','22:00',350,800,500,267,"22 heures de musique non-stop par Tania Vulcano et 12 artistes internationaux. Son Funktion-One, pool vibes, du soir jusqu\'au soleil levant. Par Supervibe.","Festival chic",'superjazzy'),
+  makeEvent('ALEX WANN @ LEONE — Marrakech','concert',null,'LEONE Marrakech','Marrakech','2026-05-29','22:00',250,600,400,180,"Alex Wann investit le LEONE pour une nuit électronique de prestige. Sets profonds, basses puissantes, ambiance club 5 étoiles au cœur de Marrakech.","Club chic",'alex_leone'),
+  makeEvent('ECHO7000 × BURN ENERGY TOUR 2026','concert',null,'TBA Marrakech','Marrakech','2026-06-27','21:00',200,500,1000,0,"Le Burn Energy Tour fait escale à Marrakech avec ECHO7000. Énergie maximale, lineup surprises et production scénique massive.","Urban chic",'echo7000'),
+  makeEvent('BACK TO HOUSE — Underground Vol. 02','concert',null,'Venue secrète — Marrakech','Marrakech','2026-07-18','22:00',180,420,600,240,"La série underground continue. Vol. 02 plonge dans les racines de la house music, sélection rigoureuse, son Funktion-One, capacité strictement limitée.","All black",'backtohouse'),
+  makeEvent('DARNA I — Roots of Detroit','concert',null,'Lieu à révéler — Marrakech','Marrakech','2026-06-13','22:00',220,500,400,160,"Darna célèbre les racines de la techno de Detroit. Une nuit immersive qui honore les pionniers d\'un genre fondateur, programmation pointue et sons authentiques.","All black",'darna'),
+  // ── DAKHLA ──
+  makeEvent('MIDNIGHT OASIS × FAYAS — Dakhla','soiree',null,'Dakhla Attitude Kite Camp','Dakhla','2026-08-15','21:00',300,700,200,42,"Fayas descend jusqu'au bout du Maroc pour une soirée hors du commun face au lagon. Musique électronique, ciel étoilé et Atlantique à pied.","Bohème chic",'beach'),
+  makeEvent('SANDSTORM × FAYAS — Dakhla Festival','festival',null,'Plage Foum El Bour Dakhla','Dakhla','2026-09-12','18:00',250,600,1000,185,"Le premier festival électronique du Sahara atlantique. Fayas réunit les meilleures têtes d'affiche sur la langue de sable de Dakhla.","Festival look",'festival'),
+  // ── CASABLANCA (nouveaux) ──
+  makeEvent('PRESTIGE GALA × FAYAS — Casablanca Royal','gala',null,'Fairmont Royal Palm Casablanca','Casablanca','2026-09-05','19:30',900,2200,120,18,"Le gala le plus exclusif de la saison au Fairmont Royal Palm. Dîner étoilé, DJ résidence internationale et cabaret de luxe.","Black tie",'gala'),
+  makeEvent('ROOFTOP SESSION × FAYAS — Casa Marina','soiree',null,'Anfa Place Marina Casablanca','Casablanca','2026-06-21','20:30',180,450,350,127,"Sur les toits de la Marina de Casablanca, Fayas orchestre une soirée open-air avec vue sur l'Atlantique et le Hassan II.","Smart chic",'rooftop'),
+  // ── MARRAKECH (nouveaux) ──
+  makeEvent('GOLDEN HOUR × FAYAS — Atlas View','gala',null,'Palais Namaskar Marrakech','Marrakech','2026-10-10','18:00',800,2000,150,0,"Le gala crépuscule ultime : golden hour sur l'Atlas depuis les terrasses du Namaskar. Haute gastronomie, champagne et DJ set sunset.","Cocktail chic",'gala'),
+  makeEvent('MYSTIC NIGHT × FAYAS — Jardin Majorelle','soiree',null,'Café Bô Zin Marrakech','Marrakech','2026-07-31','21:30',200,500,400,156,"Fayas transforme les jardins de Marrakech en scène mystique. Une nuit envoûtante mêlant art de lumière et musique électronique orientale.","Oriental chic",'soiree'),
 ];
 
 const ADMIN = {
@@ -147,6 +208,8 @@ const ADMIN = {
 const USERS = [ADMIN];
 const TICKETS = [];
 const SUBMITTED_EVENTS = []; // Événements soumis par les étudiants (status: pending)
+const FAVORITES = []; // [{ user_id, event_id, created_at }]
+const INTERESTS = []; // [{ user_id, event_id, created_at }] — "Je suis intéressé" sur propositions étudiantes
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -219,8 +282,86 @@ app.get('/api/universities/:id/events', (req, res) => {
   const u = UNIVERSITIES.find(u => u.id === req.params.id);
   if (!u) return res.status(404).json({ error: 'Université non trouvée' });
   const events      = EVENTS.filter(e => e.university_id === u.id && e.status === 'published');
-  const submissions = SUBMITTED_EVENTS.filter(e => e.university_id === u.id);
+
+  // Optional: detect current viewer via Bearer token (best-effort, no error if absent)
+  let viewerId = null;
+  const token = req.headers.authorization?.split(' ')[1];
+  if (token) { try { viewerId = jwt.verify(token, JWT_SECRET).id; } catch {} }
+
+  const submissions = SUBMITTED_EVENTS
+    .filter(e => e.university_id === u.id)
+    .map(e => {
+      const count = INTERESTS.filter(i => i.event_id === e.id).length;
+      const submitter = USERS.find(u => u.id === e.submitted_by);
+      const organizerStats = SUBMITTED_EVENTS.filter(s => s.submitted_by === e.submitted_by);
+      // Threshold: 25% of capacity to be "validated by community"
+      const threshold = Math.max(10, Math.floor(e.capacity * 0.25));
+      return {
+        ...e,
+        interest_count: count,
+        interest_threshold: threshold,
+        community_validated: count >= threshold,
+        i_am_interested: viewerId ? INTERESTS.some(i => i.event_id === e.id && i.user_id === viewerId) : false,
+        organizer_level:
+          organizerStats.length >= 5 ? 'legend'
+          : organizerStats.length >= 2 ? 'pro'
+          : 'rookie',
+        organizer_event_count: organizerStats.length,
+      };
+    });
   res.json({ university: u, events, submissions });
+});
+
+/* ── Mes propositions (dashboard étudiant organisateur) ── */
+app.get('/api/submissions/mine', auth, (req, res) => {
+  const list = SUBMITTED_EVENTS
+    .filter(e => e.submitted_by === req.user.id)
+    .map(e => ({
+      ...e,
+      interest_count: INTERESTS.filter(i => i.event_id === e.id).length,
+      interest_threshold: Math.max(10, Math.floor(e.capacity * 0.25)),
+    }))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const stats = {
+    total: list.length,
+    total_interests: list.reduce((s, e) => s + e.interest_count, 0),
+    validated: list.filter(e => e.interest_count >= Math.max(10, Math.floor(e.capacity * 0.25))).length,
+    organizer_level:
+      list.length >= 5 ? 'legend' :
+      list.length >= 2 ? 'pro' : 'rookie',
+  };
+  res.json({ submissions: list, stats });
+});
+
+/* ── Édition d'une proposition (seulement par son auteur) ── */
+app.patch('/api/submissions/:id', auth, (req, res) => {
+  const idx = SUBMITTED_EVENTS.findIndex(s => s.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Proposition non trouvée' });
+  if (SUBMITTED_EVENTS[idx].submitted_by !== req.user.id) {
+    return res.status(403).json({ error: 'Vous n\'êtes pas l\'auteur de cette proposition' });
+  }
+  const allowed = ['title','type','venue','city','date','time','price_standard','price_vip','capacity','description','dress_code','image_url','logo_url','contact_name','contact_phone','contact_email','website_url','team_members'];
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) SUBMITTED_EVENTS[idx][key] = req.body[key];
+  }
+  SUBMITTED_EVENTS[idx].updated_at = new Date().toISOString();
+  res.json(SUBMITTED_EVENTS[idx]);
+});
+
+/* ── Suppression d'une proposition (seulement par son auteur) ── */
+app.delete('/api/submissions/:id', auth, (req, res) => {
+  const idx = SUBMITTED_EVENTS.findIndex(s => s.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Proposition non trouvée' });
+  if (SUBMITTED_EVENTS[idx].submitted_by !== req.user.id) {
+    return res.status(403).json({ error: 'Vous n\'êtes pas l\'auteur de cette proposition' });
+  }
+  SUBMITTED_EVENTS.splice(idx, 1);
+  // Clean up related interests
+  for (let i = INTERESTS.length - 1; i >= 0; i--) {
+    if (INTERESTS[i].event_id === req.params.id) INTERESTS.splice(i, 1);
+  }
+  res.json({ deleted: true });
 });
 
 /* ── Soumission d'événement par un étudiant ── */
@@ -228,7 +369,9 @@ app.post('/api/events/submit', auth, (req, res) => {
   const {
     title, type, venue, city, date, time,
     price_standard, price_vip, capacity,
-    description, dress_code, image_url, university_id,
+    description, dress_code, image_url, logo_url,
+    contact_name, contact_phone, contact_email, website_url,
+    university_id, team_members,
   } = req.body;
 
   if (!title || !type || !venue || !city || !date || !time || !price_standard || !capacity || !description) {
@@ -257,9 +400,15 @@ app.post('/api/events/submit', auth, (req, res) => {
     tickets_sold: 0,
     dress_code: dress_code || null,
     image_url: image_url || null,
+    logo_url: logo_url || null,
+    contact_name: contact_name || null,
+    contact_phone: contact_phone || null,
+    contact_email: contact_email || null,
+    website_url: website_url || null,
     status: 'pending',
     submitted_by: req.user.id,
     submitter_name: submitter?.name || 'Étudiant',
+    team_members: Array.isArray(team_members) ? team_members : [],
     created_at: new Date().toISOString(),
   };
 
@@ -353,6 +502,50 @@ app.get('/api/admin/users', auth, (req, res) => {
 app.get('/api/admin/tickets', auth, (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Accès refusé' });
   res.json(paginate(TICKETS, req.query.page, req.query.limit || 50));
+});
+
+/* ── Intérêts communautaires (sur propositions étudiantes) ── */
+app.post('/api/submissions/:id/interest', auth, (req, res) => {
+  const sub = SUBMITTED_EVENTS.find(s => s.id === req.params.id);
+  if (!sub) return res.status(404).json({ error: 'Proposition non trouvée' });
+  const already = INTERESTS.find(i => i.user_id === req.user.id && i.event_id === sub.id);
+  if (already) return res.json({ interested: true, already: true });
+  INTERESTS.push({ user_id: req.user.id, event_id: sub.id, created_at: new Date().toISOString() });
+  const count = INTERESTS.filter(i => i.event_id === sub.id).length;
+  res.status(201).json({ interested: true, interest_count: count });
+});
+
+app.delete('/api/submissions/:id/interest', auth, (req, res) => {
+  const idx = INTERESTS.findIndex(i => i.user_id === req.user.id && i.event_id === req.params.id);
+  if (idx >= 0) INTERESTS.splice(idx, 1);
+  const count = INTERESTS.filter(i => i.event_id === req.params.id).length;
+  res.json({ interested: false, interest_count: count });
+});
+
+/* ── Favoris ── */
+app.get('/api/favorites', auth, (req, res) => {
+  const ids = FAVORITES.filter(f => f.user_id === req.user.id).map(f => f.event_id);
+  res.json({ event_ids: ids });
+});
+
+app.get('/api/favorites/events', auth, (req, res) => {
+  const ids = new Set(FAVORITES.filter(f => f.user_id === req.user.id).map(f => f.event_id));
+  const events = [...EVENTS, ...SUBMITTED_EVENTS].filter(e => ids.has(e.id));
+  events.sort((a, b) => new Date(a.date) - new Date(b.date));
+  res.json(events);
+});
+
+app.post('/api/favorites/:eventId', auth, (req, res) => {
+  const exists = FAVORITES.find(f => f.user_id === req.user.id && f.event_id === req.params.eventId);
+  if (exists) return res.json({ favorited: true, already: true });
+  FAVORITES.push({ user_id: req.user.id, event_id: req.params.eventId, created_at: new Date().toISOString() });
+  res.status(201).json({ favorited: true });
+});
+
+app.delete('/api/favorites/:eventId', auth, (req, res) => {
+  const idx = FAVORITES.findIndex(f => f.user_id === req.user.id && f.event_id === req.params.eventId);
+  if (idx >= 0) FAVORITES.splice(idx, 1);
+  res.json({ favorited: false });
 });
 
 app.get('/api/loyalty', auth, (req, res) => {

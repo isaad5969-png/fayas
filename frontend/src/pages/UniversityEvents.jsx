@@ -5,8 +5,16 @@ import EventCard from '../components/EventCard'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useAuth } from '../context/AuthContext'
 import { Icon } from '../components/Icons'
+import toast from 'react-hot-toast'
+
+const ORG_LEVELS = {
+  rookie: { label: 'Rookie',  color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',           emoji: '🌱', desc: '1er événement'  },
+  pro:    { label: 'Pro',     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',         emoji: '⭐', desc: 'Organisateur confirmé' },
+  legend: { label: 'Legend',  color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',     emoji: '👑', desc: '5+ événements' },
+}
 
 const TYPE_LABEL = {
+  conference: { label: 'Conférence',   color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
   soiree:     { label: 'Soirée',       color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' },
   concert:    { label: 'Concert',      color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' },
   universite: { label: 'Universitaire',color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
@@ -18,18 +26,66 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('fr-MA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function SubmissionCard({ event, color }) {
+function SubmissionCard({ event, color, isAuthenticated, onInterestToggle }) {
   const type = TYPE_LABEL[event.type] || TYPE_LABEL.autre
+  const orgLevel = ORG_LEVELS[event.organizer_level] || ORG_LEVELS.rookie
   const placeholderGradient = `linear-gradient(135deg, ${color}cc, ${color}66)`
 
+  const interestCount = event.interest_count || 0
+  const threshold = event.interest_threshold || 10
+  const interestPct = Math.min(100, (interestCount / threshold) * 100)
+  const isCommunityValidated = event.community_validated
+  const iAmInterested = event.i_am_interested
+
+  const [loading, setLoading] = useState(false)
+  const [localInterested, setLocalInterested] = useState(iAmInterested)
+  const [localCount, setLocalCount] = useState(interestCount)
+
+  const handleInterest = async (e) => {
+    e.preventDefault(); e.stopPropagation()
+    if (!isAuthenticated) {
+      toast.error('Connectez-vous pour soutenir cette proposition')
+      return
+    }
+    setLoading(true)
+    const wasInterested = localInterested
+    // Optimistic
+    setLocalInterested(!wasInterested)
+    setLocalCount(c => c + (wasInterested ? -1 : 1))
+    try {
+      if (wasInterested) {
+        await api.delete(`/submissions/${event.id}/interest`)
+        toast('Soutien retiré', { icon: '👋' })
+      } else {
+        await api.post(`/submissions/${event.id}/interest`)
+        toast.success('Merci pour votre soutien ! 🙌')
+      }
+      onInterestToggle?.()
+    } catch (err) {
+      // revert
+      setLocalInterested(wasInterested)
+      setLocalCount(c => c + (wasInterested ? 1 : -1))
+      toast.error('Erreur — réessayez')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="card overflow-hidden flex flex-col group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <div className={`card overflow-hidden flex flex-col group
+                     card-accent-top
+                     transition-all duration-400 ease-out
+                     hover:-translate-y-1.5 hover:scale-[1.005]
+                     hover:shadow-xl hover:shadow-purple-500/10 dark:hover:shadow-purple-900/30
+                     ${isCommunityValidated
+                        ? 'ring-2 ring-emerald-400/70 dark:ring-emerald-500/60'
+                        : ''}`}>
       {/* Photo */}
-      <div className="relative h-44 overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="relative h-44 overflow-hidden bg-gray-100 dark:bg-gray-800 img-zoom">
         {event.image_url ? (
           <img
             src={event.image_url} alt={event.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover img-target"
             style={{ filter: 'brightness(0.9)' }}
           />
         ) : (
@@ -39,12 +95,21 @@ function SubmissionCard({ event, color }) {
           </div>
         )}
         {/* Gradient scrim */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-        {/* Pending badge */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
-          <Icon name="pending" className="w-3 h-3" />
-          En attente
+        {/* Status badge */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+          {isCommunityValidated ? (
+            <span className="inline-flex items-center gap-1.5 bg-emerald-500/95 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+              <Icon name="check_circle" className="w-3 h-3" />
+              Validé par la communauté
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              <Icon name="pending" className="w-3 h-3" />
+              En attente
+            </span>
+          )}
         </div>
 
         {/* Type badge */}
@@ -54,12 +119,13 @@ function SubmissionCard({ event, color }) {
 
         {/* Title overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
-          <h3 className="font-bold text-white text-sm leading-tight line-clamp-2">{event.title}</h3>
+          <h3 className="font-bold text-white text-sm leading-tight line-clamp-2 drop-shadow">{event.title}</h3>
         </div>
       </div>
 
       {/* Body */}
       <div className="p-4 flex-1 flex flex-col gap-3">
+
         {/* Info grid */}
         <div className="grid grid-cols-2 gap-2">
           {[
@@ -83,29 +149,80 @@ function SubmissionCard({ event, color }) {
         )}
 
         {/* Price + capacity */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
           <div>
-            <span className="text-xs text-gray-400 dark:text-gray-500">À partir de</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">À partir de</span>
             <p className="font-bold text-purple-700 dark:text-purple-400 text-sm">{event.price_standard} MAD</p>
           </div>
           <div className="text-right">
-            <span className="text-xs text-gray-400 dark:text-gray-500">Capacité</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">Capacité</span>
             <p className="font-semibold text-gray-700 dark:text-gray-300 text-sm">{event.capacity} places</p>
           </div>
         </div>
 
+        {/* ── INTEREST METER (innovation : crowd-validation) ── */}
+        <div className={`rounded-xl p-3 ${isCommunityValidated
+            ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50'
+            : 'bg-purple-50 dark:bg-purple-900/15 border border-purple-100 dark:border-purple-900/30'
+        }`}>
+          <div className="flex justify-between items-center text-[11px] mb-1.5">
+            <span className={`font-semibold ${isCommunityValidated
+                ? 'text-emerald-700 dark:text-emerald-400'
+                : 'text-purple-700 dark:text-purple-300'}`}>
+              {isCommunityValidated ? '🎯 Seuil atteint !' : 'Intérêt communautaire'}
+            </span>
+            <span className={`font-bold tabular-nums ${isCommunityValidated
+                ? 'text-emerald-700 dark:text-emerald-400'
+                : 'text-purple-700 dark:text-purple-300'}`}>
+              {localCount} / {threshold}
+            </span>
+          </div>
+          <div className="h-2 bg-white dark:bg-gray-800/60 rounded-full overflow-hidden mb-2">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${isCommunityValidated
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                : 'bg-gradient-to-r from-purple-500 to-pink-400'}`}
+              style={{ width: `${interestPct}%` }}
+            />
+          </div>
+
+          {/* CTA Interest */}
+          <button
+            onClick={handleInterest}
+            disabled={loading}
+            className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+              localInterested
+                ? 'bg-rose-500 text-white hover:bg-rose-600'
+                : 'bg-white dark:bg-gray-900 text-purple-700 dark:text-purple-300 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/40'
+            } disabled:opacity-60`}
+          >
+            <Icon name="heart" className="w-3.5 h-3.5" strokeWidth={localInterested ? 0 : 2}
+              style={localInterested ? { fill: 'currentColor' } : {}} />
+            {localInterested ? 'Je soutiens cet événement' : 'Je suis intéressé(e)'}
+          </button>
+        </div>
+
         {/* Dress code */}
         {event.dress_code && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 rounded-lg px-3 py-1.5">
             <Icon name="shirt" className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{event.dress_code}</span>
+            <span className="truncate">{event.dress_code}</span>
           </div>
         )}
 
-        {/* Submitted by */}
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
-          <Icon name="user" className="w-3.5 h-3.5" />
-          <span>Proposé par <span className="font-medium text-gray-600 dark:text-gray-400">{event.submitter_name}</span></span>
+        {/* Submitted by + organizer level badge */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+            <Icon name="user" className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate">
+              Par <span className="font-medium text-gray-700 dark:text-gray-300">{event.submitter_name}</span>
+            </span>
+          </div>
+          <div className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${orgLevel.color} flex-shrink-0`}
+            title={`${orgLevel.desc} (${event.organizer_event_count || 0} événement${event.organizer_event_count > 1 ? 's' : ''})`}>
+            <span>{orgLevel.emoji}</span>
+            <span>{orgLevel.label}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -121,12 +238,14 @@ export default function UniversityEvents() {
   const [gridRef, gridVisible] = useScrollReveal(0.02)
   const [subRef, subVisible] = useScrollReveal(0.02)
 
-  useEffect(() => {
+  const fetchData = () => {
     api.get(`/universities/${id}/events`)
       .then(r => setData(r.data))
       .catch(() => navigate('/universities'))
       .finally(() => setLoading(false))
-  }, [id, navigate])
+  }
+
+  useEffect(() => { fetchData() }, [id, navigate])
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
@@ -155,8 +274,21 @@ export default function UniversityEvents() {
           <div className="flex flex-col sm:flex-row sm:items-end gap-5">
             {/* University info */}
             <div className="flex items-center gap-5 flex-1">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-3xl font-extrabold shrink-0 border border-white/30">
-                {university?.short_name?.slice(0, 2)}
+              <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-white/40 shadow-lg overflow-hidden p-2">
+                {university?.logo_url ? (
+                  <img
+                    src={university.logo_url}
+                    alt={university.short_name}
+                    className="w-full h-full object-contain"
+                    onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }}
+                  />
+                ) : null}
+                <span
+                  className="w-full h-full items-center justify-center text-2xl font-extrabold"
+                  style={{ color: uniColor, display: university?.logo_url ? 'none' : 'flex' }}
+                >
+                  {university?.short_name?.slice(0, 2)}
+                </span>
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">{university?.name}</h1>
@@ -272,7 +404,12 @@ export default function UniversityEvents() {
                 <div key={e.id}
                   className={`transition-all duration-600 ${subVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                   style={{ transitionDelay: `${(i % 6) * 60}ms` }}>
-                  <SubmissionCard event={e} color={uniColor} />
+                  <SubmissionCard
+                    event={e}
+                    color={uniColor}
+                    isAuthenticated={isAuthenticated}
+                    onInterestToggle={fetchData}
+                  />
                 </div>
               ))}
             </div>

@@ -1,369 +1,592 @@
 /**
- * Pure-CSS city landmark graphics — no SVG, no images.
- * Each component uses absolutely-positioned divs, clip-path, and border-radius.
- * All shapes are white so they work on any gradient card background.
+ * City landmark SVG icons — version améliorée (symboles RÉELS des villes du Maroc).
+ *
+ * Chaque composant rend une silhouette détaillée du monument le plus emblématique
+ * de la ville, dans un style ligne épurée + remplissage blanc (currentColor),
+ * compatible avec n'importe quel fond de carte coloré.
+ *
+ * Usage: <CasablancaGraphic className="w-full h-full text-white" />
  */
 
-/* tiny helper */
-const S = ({ style, op = 1 }) => (
-  <div
-    className="absolute bg-white"
-    style={{ opacity: op, ...style }}
-  />
+const wrap = (children) => (
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden
+       fill="currentColor" stroke="currentColor" strokeLinejoin="round" strokeLinecap="round">
+    {children}
+  </svg>
 )
 
-/* ─────────────────────────────────────────
-   CASABLANCA — Hassan II Mosque
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   CASABLANCA — Mosquée Hassan II (le plus haut minaret du monde)
+   Élément emblématique : haut minaret carré + dôme + esplanade
+────────────────────────────────────────────────────────── */
 export const CasablancaGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* minaret shaft */}
-    <S style={{ left:'42%', top:'5%', width:'16%', height:'54%', borderRadius:'2px 2px 0 0' }} />
-    {/* minaret decorative rings */}
-    <S style={{ left:'42%', top:'18%', width:'16%', height:'3%' }} op={0.35} />
-    <S style={{ left:'42%', top:'30%', width:'16%', height:'3%' }} op={0.35} />
-    <S style={{ left:'42%', top:'42%', width:'16%', height:'3%' }} op={0.35} />
-    {/* minaret pointed crown */}
-    <S style={{ left:'37%', top:'0', width:'26%', height:'8%', clipPath:'polygon(50% 0%,0% 100%,100% 100%)' }} />
-    {/* dome */}
-    <S style={{ left:'12%', top:'56%', width:'76%', height:'22%', borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} />
-    {/* building base */}
-    <S style={{ left:'12%', top:'74%', width:'76%', height:'21%', borderRadius:'0 0 3px 3px' }} />
-    {/* arch windows */}
-    <S style={{ left:'17%', top:'79%', width:'14%', height:'16%', clipPath:'polygon(50% 0%,0% 100%,100% 100%)', borderRadius:'0' }} op={0.22} />
-    <S style={{ left:'43%', top:'79%', width:'14%', height:'16%', clipPath:'polygon(50% 0%,0% 100%,100% 100%)' }} op={0.22} />
-    <S style={{ left:'69%', top:'79%', width:'14%', height:'16%', clipPath:'polygon(50% 0%,0% 100%,100% 100%)' }} op={0.22} />
+    {wrap(<>
+      {/* Esplanade base */}
+      <rect x="5" y="86" width="90" height="6" rx="1" />
+      {/* Esplanade colonnes */}
+      <rect x="10" y="80" width="2" height="6" opacity="0.5" />
+      <rect x="18" y="80" width="2" height="6" opacity="0.5" />
+      <rect x="26" y="80" width="2" height="6" opacity="0.5" />
+      <rect x="72" y="80" width="2" height="6" opacity="0.5" />
+      <rect x="80" y="80" width="2" height="6" opacity="0.5" />
+      <rect x="88" y="80" width="2" height="6" opacity="0.5" />
+
+      {/* Salle de prière (corps) */}
+      <rect x="32" y="60" width="36" height="20" rx="1" />
+      {/* Toits décorés */}
+      <polygon points="32,60 50,52 68,60" />
+      {/* Arches de la salle */}
+      <path d="M38 80 V72 Q38 67 42 67 Q46 67 46 72 V80 Z" fill="rgba(0,0,0,0.18)" stroke="none"/>
+      <path d="M50 80 V70 Q50 65 55 65 Q60 65 60 70 V80 Z" fill="rgba(0,0,0,0.18)" stroke="none"/>
+      <path d="M64 80 V72 Q64 67 68 67 V80 Z" fill="rgba(0,0,0,0.18)" stroke="none" opacity="0.6"/>
+
+      {/* Minaret — base */}
+      <rect x="44" y="22" width="12" height="40" rx="0.5"/>
+      {/* Anneaux décoratifs (zellige) */}
+      <rect x="44" y="32" width="12" height="1.6" opacity="0.45"/>
+      <rect x="44" y="42" width="12" height="1.6" opacity="0.45"/>
+      <rect x="44" y="52" width="12" height="1.6" opacity="0.45"/>
+      {/* Niches verticales du minaret */}
+      <rect x="46" y="36" width="1.2" height="14" opacity="0.3"/>
+      <rect x="52.8" y="36" width="1.2" height="14" opacity="0.3"/>
+      {/* Plateforme du muezzin */}
+      <rect x="42" y="20" width="16" height="3" rx="0.4"/>
+      {/* Lanternon */}
+      <rect x="46" y="14" width="8" height="6" rx="0.4"/>
+      {/* Toit pyramidal */}
+      <polygon points="44,14 50,6 56,14" />
+      {/* Flèche / antenne / globe */}
+      <circle cx="50" cy="4" r="1.5"/>
+      <rect x="49.4" y="0" width="1.2" height="4"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   MARRAKECH — Koutoubia + Palm Trees
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   MARRAKECH — Mosquée Koutoubia (minaret rouge emblématique 12e s.)
+────────────────────────────────────────────────────────── */
 export const MarrakechGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* minaret tower */}
-    <S style={{ left:'37%', top:'3%', width:'26%', height:'76%', borderRadius:'2px 2px 0 0' }} />
-    {/* decorative bands */}
-    <S style={{ left:'37%', top:'20%', width:'26%', height:'3.5%' }} op={0.28} />
-    <S style={{ left:'37%', top:'36%', width:'26%', height:'3.5%' }} op={0.28} />
-    <S style={{ left:'37%', top:'52%', width:'26%', height:'3.5%' }} op={0.28} />
-    {/* crown */}
-    <S style={{ left:'43%', top:'0', width:'14%', height:'5%', borderRadius:'2px 2px 0 0' }} />
-    {/* base step */}
-    <S style={{ left:'26%', top:'76%', width:'48%', height:'10%', borderRadius:'2px' }} />
-    {/* Left palm trunk */}
-    <S style={{ left:'5%', top:'50%', width:'4%', height:'44%', borderRadius:'3px', transform:'rotate(-4deg)' }} />
-    {/* Left fronds (rotated thin rectangles) */}
-    <S style={{ left:'0%', top:'42%', width:'18%', height:'3.5%', borderRadius:'3px', transform:'rotate(-30deg)', transformOrigin:'right center' }} op={0.9} />
-    <S style={{ left:'0%', top:'46%', width:'20%', height:'3.5%', borderRadius:'3px', transform:'rotate(15deg)',  transformOrigin:'right center' }} op={0.9} />
-    <S style={{ left:'-2%', top:'50%', width:'14%', height:'3.5%', borderRadius:'3px', transform:'rotate(-55deg)', transformOrigin:'right center' }} op={0.9} />
-    {/* Right palm trunk */}
-    <S style={{ left:'91%', top:'52%', width:'4%', height:'42%', borderRadius:'3px', transform:'rotate(4deg)' }} />
-    {/* Right fronds */}
-    <S style={{ left:'82%', top:'44%', width:'18%', height:'3.5%', borderRadius:'3px', transform:'rotate(28deg)', transformOrigin:'left center' }} op={0.9} />
-    <S style={{ left:'80%', top:'49%', width:'20%', height:'3.5%', borderRadius:'3px', transform:'rotate(-12deg)', transformOrigin:'left center' }} op={0.9} />
-    <S style={{ left:'88%', top:'52%', width:'14%', height:'3.5%', borderRadius:'3px', transform:'rotate(55deg)', transformOrigin:'left center' }} op={0.9} />
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3" />
+      {/* Palmiers */}
+      <rect x="10" y="60" width="1.4" height="32" />
+      <path d="M10.7 60 Q4 56 1 50 M10.7 60 Q5 50 5 42 M10.7 60 Q12 48 10 40 M10.7 60 Q16 52 19 46 M10.7 60 Q15 58 21 56" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <rect x="88" y="65" width="1.2" height="27"/>
+      <path d="M88.6 65 Q94 60 97 56 M88.6 65 Q92 58 92 52 M88.6 65 Q86 56 84 51 M88.6 65 Q83 62 79 60" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+
+      {/* Corps base du minaret carré (style almohade) */}
+      <rect x="38" y="22" width="24" height="62" />
+      {/* Lanternon supérieur */}
+      <rect x="42" y="14" width="16" height="10" />
+      {/* Toit pyramidal */}
+      <polygon points="42,14 50,6 58,14" />
+      {/* Boules (jamur) — empilées */}
+      <circle cx="50" cy="5" r="1.5"/>
+      <circle cx="50" cy="2.5" r="1.1"/>
+      <rect x="49.4" y="0" width="1.2" height="2.5"/>
+
+      {/* Crénelures (merlons) du minaret */}
+      <rect x="38" y="20" width="3" height="3"/>
+      <rect x="43" y="20" width="3" height="3"/>
+      <rect x="48.5" y="20" width="3" height="3"/>
+      <rect x="54" y="20" width="3" height="3"/>
+      <rect x="59" y="20" width="3" height="3"/>
+
+      {/* Niches lobées caractéristiques (4 par face) */}
+      <path d="M42 32 Q42 28 46 28 Q50 28 50 32 V42 H42 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M50 32 Q50 28 54 28 Q58 28 58 32 V42 H50 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M42 48 Q42 44 46 44 Q50 44 50 48 V58 H42 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M50 48 Q50 44 54 44 Q58 44 58 48 V58 H50 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      {/* Petites fenêtres en arc bas */}
+      <path d="M44 70 Q44 67 47 67 Q50 67 50 70 V78 H44 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M50 70 Q50 67 53 67 Q56 67 56 70 V78 H50 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   RABAT — Hassan Tower
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   RABAT — Tour Hassan (minaret inachevé 12e s.) + Mausolée
+────────────────────────────────────────────────────────── */
 export const RabatGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* main tower */}
-    <S style={{ left:'21%', top:'8%', width:'58%', height:'76%', borderRadius:'2px' }} />
-    {/* battlements (crenellations) — cut notches from top using dark overlay */}
-    <S style={{ left:'25%', top:'3%', width:'10%', height:'9%', borderRadius:'1px' }} />
-    <S style={{ left:'39%', top:'3%', width:'10%', height:'9%', borderRadius:'1px' }} />
-    <S style={{ left:'53%', top:'3%', width:'10%', height:'9%', borderRadius:'1px' }} />
-    <S style={{ left:'67%', top:'3%', width:'10%', height:'9%', borderRadius:'1px' }} />
-    {/* arch niches row 1 */}
-    <S style={{ left:'27%', top:'22%', width:'17%', height:'22%', clipPath:'polygon(0% 100%,50% 0%,100% 100%)', borderRadius:'0' }} op={0.22} />
-    <S style={{ left:'56%', top:'22%', width:'17%', height:'22%', clipPath:'polygon(0% 100%,50% 0%,100% 100%)' }} op={0.22} />
-    {/* arch niches row 2 */}
-    <S style={{ left:'27%', top:'52%', width:'17%', height:'22%', clipPath:'polygon(0% 100%,50% 0%,100% 100%)' }} op={0.22} />
-    <S style={{ left:'56%', top:'52%', width:'17%', height:'22%', clipPath:'polygon(0% 100%,50% 0%,100% 100%)' }} op={0.22} />
-    {/* flanking column ruins */}
-    <S style={{ left:'5%',  top:'55%', width:'12%', height:'40%', borderRadius:'2px' }} op={0.7} />
-    <S style={{ left:'83%', top:'55%', width:'12%', height:'40%', borderRadius:'2px' }} op={0.7} />
-    {/* ground platform */}
-    <S style={{ left:'0', bottom:'0', width:'100%', height:'6%', borderRadius:'2px' }} />
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3"/>
+
+      {/* Colonnes survivantes (rangée de chapiteaux) — l'iconographie de la Tour Hassan */}
+      {[12, 20, 28].map(x => (
+        <g key={x}>
+          <rect x={x} y="72" width="2.5" height="20"/>
+          <rect x={x - 0.6} y="71" width="3.7" height="2"/>
+        </g>
+      ))}
+      {[78, 86].map(x => (
+        <g key={x}>
+          <rect x={x} y="72" width="2.5" height="20"/>
+          <rect x={x - 0.6} y="71" width="3.7" height="2"/>
+        </g>
+      ))}
+
+      {/* Mausolée — dôme pyramidal côté droit */}
+      <rect x="64" y="64" width="20" height="28"/>
+      <polygon points="64,64 74,52 84,64"/>
+      <rect x="68" y="68" width="3" height="8" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <rect x="77" y="68" width="3" height="8" fill="rgba(0,0,0,0.22)" stroke="none"/>
+
+      {/* Tour Hassan — minaret inachevé carré (laissé à hauteur 44m sur les 86 prévus) */}
+      <rect x="38" y="32" width="22" height="60"/>
+      {/* Niches lobées (caractéristique style almohade) */}
+      <path d="M42 44 Q42 40 46 40 Q49 40 49 44 V54 H42 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M51 44 Q51 40 55 40 Q58 40 58 44 V54 H51 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M42 60 Q42 56 46 56 Q49 56 49 60 V70 H42 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      <path d="M51 60 Q51 56 55 56 Q58 56 58 60 V70 H51 Z" fill="rgba(0,0,0,0.22)" stroke="none"/>
+      {/* Crénelures du sommet (inachevé) */}
+      <rect x="38" y="30" width="3.5" height="3"/>
+      <rect x="44" y="30" width="3.5" height="3"/>
+      <rect x="50" y="30" width="3.5" height="3"/>
+      <rect x="56" y="30" width="3.5" height="3"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   AGADIR — Sun + Waves + Beach
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   AGADIR — Kasbah d'Agadir Oufella + plage + soleil
+────────────────────────────────────────────────────────── */
 export const AgadirGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* sun disc */}
-    <S style={{ left:'32%', top:'8%', width:'36%', paddingBottom:'36%', borderRadius:'50%' }} />
-    {/* rays — 8 thin bars rotated */}
-    {[0,45,90,135].map(deg => (
-      <S key={deg} style={{ left:'48%', top:'0%', width:'4%', height:'10%', borderRadius:'2px',
-               transform:`rotate(${deg}deg)`, transformOrigin:'50% 300%' }} op={0.9} />
-    ))}
-    {[22,67,112,157].map(deg => (
-      <S key={deg} style={{ left:'48%', top:'1%', width:'3%', height:'7%', borderRadius:'2px',
-               transform:`rotate(${deg}deg)`, transformOrigin:'50% 340%' }} op={0.65} />
-    ))}
-    {/* wave 1 */}
-    <S style={{ left:'0', top:'62%', width:'100%', height:'10%',
-               borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} op={0.85} />
-    {/* wave 2 */}
-    <S style={{ left:'0', top:'72%', width:'100%', height:'10%',
-               borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} op={0.65} />
-    {/* beach */}
-    <S style={{ left:'0', bottom:'0', width:'100%', height:'16%',
-               borderRadius:'2px 2px 0 0' }} op={0.5} />
+    {wrap(<>
+      {/* Soleil */}
+      <circle cx="78" cy="22" r="9"/>
+      {/* Rayons du soleil */}
+      {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
+        <rect key={deg} x="77" y="6" width="2" height="5"
+              transform={`rotate(${deg} 78 22)`} opacity="0.7"/>
+      ))}
+
+      {/* Montagne avec kasbah au sommet */}
+      <polygon points="0,72 22,40 44,72" />
+      {/* Kasbah au sommet — murailles crénelées */}
+      <rect x="14" y="34" width="18" height="9"/>
+      <rect x="14" y="32" width="3" height="3"/>
+      <rect x="19" y="32" width="3" height="3"/>
+      <rect x="24" y="32" width="3" height="3"/>
+      <rect x="29" y="32" width="3" height="3"/>
+      {/* Porte de la kasbah */}
+      <path d="M22 43 Q22 38 24 38 Q26 38 26 43 V47 H22 Z" fill="rgba(0,0,0,0.3)" stroke="none"/>
+
+      {/* Plage / sable */}
+      <path d="M0 78 Q25 75 50 78 Q75 81 100 78 V92 H0 Z" />
+
+      {/* Vagues */}
+      <path d="M50 84 Q55 82 60 84 Q65 86 70 84 Q75 82 80 84 Q85 86 90 84" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+      <path d="M55 88 Q60 86 65 88 Q70 90 75 88 Q80 86 85 88 Q90 90 95 88" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.5"/>
+
+      {/* Voilier */}
+      <polygon points="74,68 74,76 84,76" opacity="0.9"/>
+      <rect x="73.4" y="60" width="1.2" height="16" opacity="0.9"/>
+      <polygon points="74,60 74,68 80,68" opacity="0.7"/>
+
+      {/* Mouettes */}
+      <path d="M30 22 q3 -3 6 0 q3 -3 6 0" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <path d="M50 16 q2.4 -2.4 4.8 0 q2.4 -2.4 4.8 0" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   FÈS — Bab Bou Jeloud Gate
-───────────────────────────────────────── */
-export const FèsGraphic = ({ className = '' }) => (
+/* ──────────────────────────────────────────────────────────
+   FÈS — Bab Boujloud (la fameuse porte bleue de la Médina)
+────────────────────────────────────────────────────────── */
+export const FesGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* left tower */}
-    <S style={{ left:'2%', top:'26%', width:'24%', height:'70%', borderRadius:'2px' }} />
-    {/* right tower */}
-    <S style={{ left:'74%', top:'26%', width:'24%', height:'70%', borderRadius:'2px' }} />
-    {/* central arch (pointed) */}
-    <S style={{ left:'22%', top:'14%', width:'56%', height:'82%',
-               clipPath:'polygon(0% 100%,0% 55%,50% 0%,100% 55%,100% 100%)' }} />
-    {/* hollow arch interior */}
-    <div className="absolute bg-black"
-         style={{ left:'27%', top:'36%', width:'46%', height:'60%',
-                  clipPath:'polygon(0% 100%,0% 28%,50% 0%,100% 28%,100% 100%)',
-                  opacity: 0.28 }} />
-    {/* left battlement */}
-    <S style={{ left:'2%',  top:'20%', width:'7%', height:'8%', borderRadius:'1px' }} />
-    <S style={{ left:'11%', top:'20%', width:'7%', height:'8%', borderRadius:'1px' }} />
-    <S style={{ left:'20%', top:'20%', width:'5%', height:'8%', borderRadius:'1px' }} />
-    {/* right battlement */}
-    <S style={{ left:'74%', top:'20%', width:'7%', height:'8%', borderRadius:'1px' }} />
-    <S style={{ left:'83%', top:'20%', width:'7%', height:'8%', borderRadius:'1px' }} />
-    <S style={{ left:'92%', top:'20%', width:'6%', height:'8%', borderRadius:'1px' }} />
-    {/* cornice band */}
-    <S style={{ left:'0', top:'22%', width:'100%', height:'6%' }} op={0.9} />
-    {/* zellige star ornament above arch */}
-    <div className="absolute" style={{ left:'44%', top:'12%', width:'12%', paddingBottom:'12%' }}>
-      <div className="absolute inset-0 bg-white opacity-25"
-           style={{ clipPath:'polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)' }} />
-    </div>
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3"/>
+
+      {/* Tours latérales (bastions) */}
+      <rect x="6" y="36" width="14" height="56"/>
+      <rect x="80" y="36" width="14" height="56"/>
+      {/* Crénelures tours */}
+      <rect x="6" y="33" width="3" height="3"/>
+      <rect x="11" y="33" width="3" height="3"/>
+      <rect x="16" y="33" width="3" height="3"/>
+      <rect x="80" y="33" width="3" height="3"/>
+      <rect x="85" y="33" width="3" height="3"/>
+      <rect x="90" y="33" width="3" height="3"/>
+
+      {/* Corps central */}
+      <rect x="20" y="46" width="60" height="46"/>
+
+      {/* Couronnement central (arc supérieur) */}
+      <path d="M20 46 Q50 18 80 46 Z" />
+
+      {/* GRANDE ARCHE EN FER À CHEVAL (signature de Bab Boujloud) */}
+      <path d="M30 92 V72 Q30 50 50 50 Q70 50 70 72 V92 Z"
+            fill="rgba(0,0,0,0.32)" stroke="none"/>
+      {/* Encadrement de l'arche */}
+      <path d="M27 92 V72 Q27 47 50 47 Q73 47 73 72 V92"
+            stroke="currentColor" strokeWidth="1.6" fill="none"/>
+
+      {/* Rosace centrale (étoile à 8 branches caractéristique des Médersas) */}
+      <g transform="translate(50 36)">
+        <polygon points="0,-6 1.7,-1.7 6,0 1.7,1.7 0,6 -1.7,1.7 -6,0 -1.7,-1.7" opacity="0.85"/>
+        <polygon points="0,-4.2 3,-3 4.2,0 3,3 0,4.2 -3,3 -4.2,0 -3,-3" opacity="0.55"
+                 transform="rotate(22.5)"/>
+      </g>
+
+      {/* Décor zellige (carrés latéraux) */}
+      <rect x="10" y="50" width="6" height="6" opacity="0.45"/>
+      <rect x="10" y="60" width="6" height="6" opacity="0.35"/>
+      <rect x="10" y="70" width="6" height="6" opacity="0.45"/>
+      <rect x="84" y="50" width="6" height="6" opacity="0.45"/>
+      <rect x="84" y="60" width="6" height="6" opacity="0.35"/>
+      <rect x="84" y="70" width="6" height="6" opacity="0.45"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   TANGER — Lighthouse
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   TANGER — Cap Spartel (phare) + Détroit + voilier
+────────────────────────────────────────────────────────── */
 export const TangerGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* lighthouse body (trapezoid) */}
-    <S style={{ left:'28%', top:'22%', width:'44%', height:'68%',
-               clipPath:'polygon(15% 0%,85% 0%,100% 100%,0% 100%)' }} />
-    {/* stripe */}
-    <S style={{ left:'28%', top:'56%', width:'44%', height:'7%' }} op={0.3} />
-    {/* lantern room */}
-    <S style={{ left:'24%', top:'12%', width:'52%', height:'12%', borderRadius:'2px' }} />
-    {/* roof triangle */}
-    <S style={{ left:'20%', top:'5%', width:'60%', height:'10%',
-               clipPath:'polygon(50% 0%,0% 100%,100% 100%)' }} />
-    {/* light orb */}
-    <S style={{ left:'45%', top:'14%', width:'10%', paddingBottom:'10%', borderRadius:'50%' }} op={0.55} />
-    {/* door */}
-    <S style={{ left:'40%', top:'76%', width:'20%', height:'22%',
-               clipPath:'polygon(0% 100%,0% 30%,50% 0%,100% 30%,100% 100%)' }} op={0.22} />
-    {/* light beam 1 */}
-    <S style={{ left:'72%', top:'14%', width:'22%', height:'3%', borderRadius:'2px',
-               transform:'rotate(-15deg)', transformOrigin:'left center' }} op={0.65} />
-    {/* light beam 2 */}
-    <S style={{ left:'72%', top:'18%', width:'24%', height:'2.5%', borderRadius:'2px',
-               transform:'rotate(5deg)', transformOrigin:'left center' }} op={0.45} />
-    {/* wave 1 */}
-    <S style={{ left:'0', bottom:'12%', width:'100%', height:'8%',
-               borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} op={0.8} />
-    {/* wave 2 */}
-    <S style={{ left:'0', bottom:'4%', width:'100%', height:'7%',
-               borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} op={0.55} />
+    {wrap(<>
+      {/* Mer / horizon — vagues */}
+      <path d="M0 76 Q15 73 30 76 Q45 79 60 76 Q75 73 90 76 Q100 78 100 78 V92 H0 Z" opacity="0.85"/>
+      <path d="M0 82 Q15 80 30 82 Q45 84 60 82 Q75 80 90 82" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.5"/>
+      <path d="M0 87 Q15 85 30 87 Q45 89 60 87 Q75 85 90 87" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+
+      {/* Falaise / promontoire */}
+      <path d="M0 76 L0 50 Q15 48 25 60 L30 76 Z" />
+
+      {/* Phare — base */}
+      <rect x="56" y="58" width="14" height="18" />
+      {/* Phare — corps cylindrique avec bandes */}
+      <path d="M58 28 L68 28 L70 58 L56 58 Z"/>
+      {/* Bandes blanches/noires caractéristiques */}
+      <rect x="58" y="36" width="11" height="4" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="58" y="44" width="11.5" height="4" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="58" y="52" width="12" height="4" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      {/* Galerie */}
+      <rect x="55" y="25" width="16" height="3.5"/>
+      {/* Lanterne (cabine vitrée) */}
+      <rect x="58" y="17" width="10" height="9"/>
+      <rect x="59" y="19" width="2" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="62.5" y="19" width="2" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="65.5" y="19" width="2" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      {/* Toit en dôme */}
+      <path d="M58 17 Q63 11 68 17 Z"/>
+      <circle cx="63" cy="6" r="1.5"/>
+      <rect x="62.4" y="3" width="1.2" height="3"/>
+
+      {/* Faisceaux lumineux */}
+      <path d="M68 22 L88 14" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+      <path d="M68 22 L92 22" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+      <path d="M68 22 L88 30" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+
+      {/* Voilier au loin */}
+      <polygon points="32,68 32,76 42,76" opacity="0.85"/>
+      <rect x="31.4" y="60" width="1.2" height="16" opacity="0.85"/>
+      <polygon points="32,60 32,68 38,68" opacity="0.7"/>
+
+      {/* Mouettes */}
+      <path d="M15 30 q2 -2 4 0 q2 -2 4 0" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.8"/>
+      <path d="M82 38 q2 -2 4 0 q2 -2 4 0" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.7"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   ESSAOUIRA — Sailing Boat
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   ESSAOUIRA — Skala de la ville (remparts portugais + canons)
+────────────────────────────────────────────────────────── */
 export const EssaouiraGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* hull */}
-    <S style={{ left:'8%', top:'58%', width:'84%', height:'18%',
-               clipPath:'polygon(0% 0%,100% 0%,92% 100%,8% 100%)' }} />
-    {/* keel bottom */}
-    <S style={{ left:'38%', top:'74%', width:'24%', height:'10%',
-               clipPath:'polygon(0% 0%,100% 0%,50% 100%)' }} />
-    {/* mast */}
-    <S style={{ left:'47%', top:'12%', width:'6%', height:'48%', borderRadius:'2px' }} />
-    {/* main sail */}
-    <S style={{ left:'50%', top:'14%', width:'36%', height:'44%',
-               clipPath:'polygon(0% 0%,100% 100%,0% 100%)' }} op={0.9} />
-    {/* jib sail */}
-    <S style={{ left:'14%', top:'18%', width:'36%', height:'40%',
-               clipPath:'polygon(100% 0%,0% 100%,100% 100%)' }} op={0.75} />
-    {/* flag */}
-    <S style={{ left:'50%', top:'8%', width:'20%', height:'10%',
-               clipPath:'polygon(0% 0%,100% 50%,0% 100%)' }} op={0.75} />
-    {/* porthole */}
-    <div className="absolute rounded-full border-2 border-white"
-         style={{ left:'22%', top:'61%', width:'8%', paddingBottom:'8%', opacity:0.45 }} />
-    {/* wave */}
-    <S style={{ left:'0', bottom:'4%', width:'100%', height:'8%',
-               borderRadius:'50% 50% 0 0 / 100% 100% 0 0' }} op={0.7} />
+    {wrap(<>
+      {/* Mer */}
+      <path d="M0 74 Q10 72 20 74 Q30 76 40 74 Q50 72 60 74 Q70 76 80 74 Q90 72 100 74 V92 H0 Z" opacity="0.85"/>
+      <path d="M0 80 Q15 78 30 80 Q45 82 60 80 Q75 78 90 80" stroke="currentColor" strokeWidth="1.1" fill="none" opacity="0.5"/>
+      <path d="M0 86 Q15 84 30 86 Q45 88 60 86 Q75 84 90 86" stroke="currentColor" strokeWidth="0.9" fill="none" opacity="0.4"/>
+
+      {/* Remparts (Skala) — long mur */}
+      <rect x="6" y="50" width="88" height="24"/>
+
+      {/* Crénelures du rempart */}
+      {[8, 14, 20, 26, 32, 38, 44, 50, 56, 62, 68, 74, 80, 86].map(x => (
+        <rect key={x} x={x} y="46" width="4" height="4"/>
+      ))}
+
+      {/* Canons posés sur le rempart (la signature d'Essaouira) */}
+      {[16, 36, 56, 76].map(x => (
+        <g key={x}>
+          {/* Tube du canon */}
+          <rect x={x} y="42" width="9" height="2.4" rx="0.5"/>
+          {/* Bouche */}
+          <circle cx={x + 9.5} cy="43.2" r="0.6"/>
+          {/* Affût (roues) */}
+          <circle cx={x + 2} cy="46.5" r="1.6"/>
+          <circle cx={x + 7} cy="46.5" r="1.6"/>
+        </g>
+      ))}
+
+      {/* Tour ronde à droite (bastion) */}
+      <rect x="76" y="38" width="14" height="12"/>
+      <path d="M76 38 Q83 32 90 38 Z"/>
+      <rect x="79" y="42" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="84.5" y="42" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+
+      {/* Bateaux de pêche bleus (caractéristiques du port) */}
+      <path d="M22 76 L20 80 L34 80 L32 76 Z" opacity="0.9"/>
+      <rect x="26.4" y="68" width="1.2" height="8" opacity="0.9"/>
+      <polygon points="27,68 27,76 33,76" opacity="0.7"/>
+
+      <path d="M58 78 L56 82 L70 82 L68 78 Z" opacity="0.85"/>
+      <rect x="62.4" y="72" width="1.2" height="6" opacity="0.85"/>
+      <polygon points="63,72 63,78 67,78" opacity="0.65"/>
+
+      {/* Mouettes */}
+      <path d="M30 20 q2.5 -2.5 5 0 q2.5 -2.5 5 0" stroke="currentColor" strokeWidth="1.3" fill="none"/>
+      <path d="M55 28 q2 -2 4 0 q2 -2 4 0" stroke="currentColor" strokeWidth="1.1" fill="none" opacity="0.85"/>
+      <path d="M75 16 q1.8 -1.8 3.6 0 q1.8 -1.8 3.6 0" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.7"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   KÉNITRA — Graduation Cap + Diploma
-───────────────────────────────────────── */
-export const KénitraGraphic = ({ className = '' }) => (
+/* ──────────────────────────────────────────────────────────
+   KÉNITRA — Kasbah de Mehdya + océan + bateau
+────────────────────────────────────────────────────────── */
+export const KenitraGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* mortarboard diamond */}
-    <S style={{ left:'20%', top:'16%', width:'60%', height:'30%',
-               clipPath:'polygon(50% 0%,100% 50%,50% 100%,0% 50%)' }} />
-    {/* cap board top surface */}
-    <S style={{ left:'32%', top:'16%', width:'36%', height:'20%', borderRadius:'2px' }} op={0.8} />
-    {/* tassel stem up */}
-    <S style={{ left:'48%', top:'4%', width:'4%', height:'14%', borderRadius:'2px' }} />
-    {/* tassel ball */}
-    <S style={{ left:'44%', top:'0', width:'12%', paddingBottom:'12%', borderRadius:'50%' }} />
-    {/* side tassel drop */}
-    <S style={{ left:'80%', top:'30%', width:'4%', height:'16%', borderRadius:'2px' }} />
-    <S style={{ left:'74%', top:'46%', width:'16%', height:'3.5%', borderRadius:'2px',
-               transform:'rotate(-20deg)' }} op={0.75} />
-    <S style={{ left:'72%', top:'52%', width:'18%', height:'3.5%', borderRadius:'2px',
-               transform:'rotate(-20deg)' }} op={0.55} />
-    {/* diploma scroll */}
-    <S style={{ left:'18%', top:'68%', width:'64%', height:'24%', borderRadius:'50px' }} />
-    {/* scroll lines */}
-    <S style={{ left:'28%', top:'74%', width:'44%', height:'3%', borderRadius:'2px' }} op={0.25} />
-    <S style={{ left:'28%', top:'81%', width:'36%', height:'3%', borderRadius:'2px' }} op={0.25} />
-    {/* wax seal */}
-    <S style={{ left:'44%', top:'72%', width:'12%', paddingBottom:'12%', borderRadius:'50%' }} op={0.25} />
+    {wrap(<>
+      {/* Eau */}
+      <path d="M0 78 Q20 76 40 78 Q60 80 80 78 Q90 77 100 78 V92 H0 Z" opacity="0.85"/>
+      <path d="M0 84 Q20 82 40 84 Q60 86 80 84 Q90 83 100 84" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+
+      {/* Kasbah de Mehdya — bastion principal */}
+      <rect x="14" y="36" width="40" height="42"/>
+      {/* Crénelures */}
+      {[14, 20, 26, 32, 38, 44, 50].map(x => (
+        <rect key={x} x={x} y="33" width="3.5" height="3"/>
+      ))}
+      {/* Tour ronde gauche */}
+      <rect x="10" y="44" width="8" height="34"/>
+      <path d="M10 44 Q14 38 18 44 Z"/>
+      {/* Tour ronde droite */}
+      <rect x="50" y="40" width="10" height="38"/>
+      <path d="M50 40 Q55 32 60 40 Z"/>
+
+      {/* Porte centrale */}
+      <path d="M28 78 V64 Q28 56 34 56 Q40 56 40 64 V78 Z" fill="rgba(0,0,0,0.32)" stroke="none"/>
+
+      {/* Fenêtres */}
+      <rect x="17" y="52" width="2.5" height="5" fill="rgba(0,0,0,0.28)" stroke="none"/>
+      <rect x="52" y="48" width="2.5" height="5" fill="rgba(0,0,0,0.28)" stroke="none"/>
+      <rect x="56" y="48" width="2.5" height="5" fill="rgba(0,0,0,0.28)" stroke="none"/>
+
+      {/* Diplôme étudiant — toque/diplôme dans le coin (université) */}
+      <g transform="translate(76 30)">
+        <polygon points="0,8 -12,4 0,0 12,4" />
+        <rect x="-7" y="6" width="14" height="3" opacity="0.7"/>
+        <rect x="-0.4" y="9" width="0.8" height="6" opacity="0.8"/>
+        <circle cx="0" cy="16" r="1.4" opacity="0.85"/>
+      </g>
+
+      {/* Bateau */}
+      <path d="M72 80 L70 84 L92 84 L90 80 Z" opacity="0.9"/>
+      <rect x="80" y="68" width="1.5" height="12" opacity="0.9"/>
+      <polygon points="80.5,68 80.5,80 88,80" opacity="0.7"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   MEKNÈS — Bab Mansour Gate
-───────────────────────────────────────── */
-export const MeknèsGraphic = ({ className = '' }) => (
+/* ──────────────────────────────────────────────────────────
+   MEKNÈS — Bab Mansour (la plus belle porte d'Afrique du Nord)
+────────────────────────────────────────────────────────── */
+export const MeknesGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* left column */}
-    <S style={{ left:'2%', top:'32%', width:'18%', height:'64%', borderRadius:'2px' }} />
-    {/* right column */}
-    <S style={{ left:'80%', top:'32%', width:'18%', height:'64%', borderRadius:'2px' }} />
-    {/* column capitals left */}
-    <S style={{ left:'0', top:'26%', width:'22%', height:'8%', borderRadius:'2px' }} />
-    {/* column capitals right */}
-    <S style={{ left:'78%', top:'26%', width:'22%', height:'8%', borderRadius:'2px' }} />
-    {/* central arch */}
-    <S style={{ left:'18%', top:'16%', width:'64%', height:'80%',
-               clipPath:'polygon(0% 100%,0% 50%,50% 0%,100% 50%,100% 100%)' }} />
-    {/* hollow arch */}
-    <div className="absolute bg-black"
-         style={{ left:'24%', top:'36%', width:'52%', height:'60%',
-                  clipPath:'polygon(0% 100%,0% 30%,50% 0%,100% 30%,100% 100%)',
-                  opacity: 0.3 }} />
-    {/* cornice */}
-    <S style={{ left:'0', top:'20%', width:'100%', height:'8%' }} op={0.9} />
-    {/* zellige star */}
-    <div className="absolute" style={{ left:'42%', top:'10%', width:'16%', paddingBottom:'16%' }}>
-      <div className="absolute inset-0 bg-white opacity-28"
-           style={{ clipPath:'polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)' }} />
-    </div>
-    {/* arch voussoir shadow */}
-    <div className="absolute"
-         style={{ left:'20%', top:'20%', width:'60%', height:'20%',
-                  clipPath:'polygon(0% 100%,50% 0%,100% 100%)',
-                  background:'rgba(0,0,0,0.15)' }} />
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3"/>
+
+      {/* Bastions latéraux (kiosques saillants à colonnes) */}
+      <rect x="2" y="44" width="16" height="48"/>
+      <rect x="82" y="44" width="16" height="48"/>
+      {/* Toit pyramidal sur les bastions */}
+      <polygon points="2,44 10,34 18,44"/>
+      <polygon points="82,44 90,34 98,44"/>
+      {/* Crénelures sur bastions */}
+      <rect x="3" y="36" width="2" height="2" opacity="0.6"/>
+      <rect x="15" y="36" width="2" height="2" opacity="0.6"/>
+      <rect x="83" y="36" width="2" height="2" opacity="0.6"/>
+      <rect x="95" y="36" width="2" height="2" opacity="0.6"/>
+
+      {/* Petites colonnes à l'avant des bastions */}
+      <rect x="6" y="56" width="1.6" height="36" opacity="0.7"/>
+      <rect x="12" y="56" width="1.6" height="36" opacity="0.7"/>
+      <rect x="86" y="56" width="1.6" height="36" opacity="0.7"/>
+      <rect x="92" y="56" width="1.6" height="36" opacity="0.7"/>
+      {/* Chapiteaux */}
+      <rect x="5.4" y="54" width="2.8" height="2.5" opacity="0.7"/>
+      <rect x="11.4" y="54" width="2.8" height="2.5" opacity="0.7"/>
+      <rect x="85.4" y="54" width="2.8" height="2.5" opacity="0.7"/>
+      <rect x="91.4" y="54" width="2.8" height="2.5" opacity="0.7"/>
+
+      {/* Corps central de la porte */}
+      <rect x="18" y="32" width="64" height="60"/>
+
+      {/* GRANDE ARCHE EN FER À CHEVAL */}
+      <path d="M30 92 V70 Q30 42 50 42 Q70 42 70 70 V92 Z"
+            fill="rgba(0,0,0,0.34)" stroke="none"/>
+      {/* Encadrement de l'arche (alfiz rectangulaire) */}
+      <rect x="24" y="38" width="52" height="52" fill="none" stroke="currentColor" strokeWidth="1.4"/>
+
+      {/* Inscriptions calligraphiques (frise horizontale) */}
+      <rect x="22" y="34" width="56" height="3" opacity="0.45"/>
+      <rect x="22" y="34" width="56" height="3" fill="none" stroke="currentColor" strokeWidth="0.4" opacity="0.7"/>
+
+      {/* Médaillons en zellige autour de l'arche */}
+      <g transform="translate(28 56)">
+        <polygon points="0,-3 0.85,-0.85 3,0 0.85,0.85 0,3 -0.85,0.85 -3,0 -0.85,-0.85" opacity="0.7"/>
+      </g>
+      <g transform="translate(72 56)">
+        <polygon points="0,-3 0.85,-0.85 3,0 0.85,0.85 0,3 -0.85,0.85 -3,0 -0.85,-0.85" opacity="0.7"/>
+      </g>
+
+      {/* Couronnement (merlons en escalier au sommet) */}
+      <rect x="22" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="29" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="36" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="43" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="50" y="28" width="3" height="5" opacity="0.85"/>
+      <rect x="55" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="62" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="69" y="30" width="3" height="3" opacity="0.85"/>
+      <rect x="76" y="30" width="3" height="3" opacity="0.85"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   OUJDA — Musical Notes
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   OUJDA — Bab Sidi Abdelouahab (porte historique de la médina)
+────────────────────────────────────────────────────────── */
 export const OujdaGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* note 1 head (ellipse) */}
-    <S style={{ left:'4%', top:'62%', width:'26%', paddingBottom:'18%',
-               borderRadius:'50%', transform:'rotate(-15deg)' }} />
-    {/* note 1 stem */}
-    <S style={{ left:'27%', top:'22%', width:'5%', height:'44%', borderRadius:'2px' }} />
-    {/* note 1 flag */}
-    <S style={{ left:'30%', top:'22%', width:'28%', height:'20%',
-               clipPath:'polygon(0% 0%,100% 50%,0% 100%)' }} op={0.9} />
-    {/* note 2 head */}
-    <S style={{ left:'52%', top:'66%', width:'22%', paddingBottom:'16%',
-               borderRadius:'50%', transform:'rotate(-15deg)' }} />
-    {/* note 2 stem */}
-    <S style={{ left:'71%', top:'28%', width:'5%', height:'42%', borderRadius:'2px' }} />
-    {/* note 2 flag */}
-    <S style={{ left:'74%', top:'28%', width:'22%', height:'18%',
-               clipPath:'polygon(0% 0%,100% 50%,0% 100%)' }} op={0.9} />
-    {/* connecting beam */}
-    <S style={{ left:'28%', top:'20%', width:'48%', height:'6%', borderRadius:'2px' }} />
-    {/* decorative stars */}
-    <S style={{ left:'8%',  top:'10%', width:'8%', paddingBottom:'8%', borderRadius:'50%' }} op={0.7} />
-    <S style={{ left:'44%', top:'4%',  width:'7%', paddingBottom:'7%', borderRadius:'50%' }} op={0.55} />
-    <S style={{ left:'82%', top:'10%', width:'6%', paddingBottom:'6%', borderRadius:'50%' }} op={0.45} />
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3"/>
+
+      {/* Tours latérales rondes */}
+      <rect x="10" y="42" width="16" height="50"/>
+      <rect x="74" y="42" width="16" height="50"/>
+      <path d="M10 42 Q18 32 26 42 Z"/>
+      <path d="M74 42 Q82 32 90 42 Z"/>
+
+      {/* Crénelures tours */}
+      <rect x="13" y="40" width="3" height="3" opacity="0.7"/>
+      <rect x="20" y="40" width="3" height="3" opacity="0.7"/>
+      <rect x="77" y="40" width="3" height="3" opacity="0.7"/>
+      <rect x="84" y="40" width="3" height="3" opacity="0.7"/>
+
+      {/* Petites fenêtres tours */}
+      <rect x="15" y="60" width="2.5" height="6" fill="rgba(0,0,0,0.32)" stroke="none"/>
+      <rect x="80" y="60" width="2.5" height="6" fill="rgba(0,0,0,0.32)" stroke="none"/>
+
+      {/* Corps central de la porte */}
+      <rect x="26" y="48" width="48" height="44"/>
+
+      {/* Arche en plein cintre */}
+      <path d="M36 92 V72 Q36 56 50 56 Q64 56 64 72 V92 Z" fill="rgba(0,0,0,0.34)" stroke="none"/>
+      <path d="M34 92 V72 Q34 54 50 54 Q66 54 66 72 V92" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+
+      {/* Frise décorative horizontale */}
+      <rect x="28" y="50" width="44" height="2.5" opacity="0.45"/>
+      <rect x="28" y="50" width="44" height="2.5" fill="none" stroke="currentColor" strokeWidth="0.4" opacity="0.6"/>
+
+      {/* Étoile à 8 branches centrale au sommet */}
+      <g transform="translate(50 42)">
+        <polygon points="0,-5 1.4,-1.4 5,0 1.4,1.4 0,5 -1.4,1.4 -5,0 -1.4,-1.4" opacity="0.8"/>
+      </g>
+
+      {/* Merlons supérieurs en escalier */}
+      <rect x="26" y="44" width="3.5" height="4" opacity="0.85"/>
+      <rect x="34" y="44" width="3.5" height="4" opacity="0.85"/>
+      <rect x="42" y="44" width="3.5" height="4" opacity="0.85"/>
+      <rect x="50" y="44" width="3.5" height="4" opacity="0.85"/>
+      <rect x="58" y="44" width="3.5" height="4" opacity="0.85"/>
+      <rect x="66" y="44" width="3.5" height="4" opacity="0.85"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   TÉTOUAN — Mountains + White Medina
-───────────────────────────────────────── */
-export const TétouanGraphic = ({ className = '' }) => (
+/* ──────────────────────────────────────────────────────────
+   TÉTOUAN — Médina blanche + Montagnes du Rif
+────────────────────────────────────────────────────────── */
+export const TetouanGraphic = ({ className = '' }) => (
   <div className={`relative w-full h-full ${className}`} aria-hidden>
-    {/* back mountain left */}
-    <S style={{ left:'0', top:'28%', width:'55%', height:'56%',
-               clipPath:'polygon(50% 0%,100% 100%,0% 100%)' }} op={0.5} />
-    {/* back mountain right */}
-    <S style={{ left:'45%', top:'28%', width:'55%', height:'56%',
-               clipPath:'polygon(50% 0%,100% 100%,0% 100%)' }} op={0.5} />
-    {/* main center mountain */}
-    <S style={{ left:'10%', top:'6%', width:'80%', height:'76%',
-               clipPath:'polygon(50% 0%,100% 100%,0% 100%)' }} />
-    {/* snow cap */}
-    <div className="absolute bg-white"
-         style={{ left:'38%', top:'6%', width:'24%', height:'22%',
-                  clipPath:'polygon(50% 0%,100% 100%,0% 100%)',
-                  opacity: 0.45 }} />
-    {/* medina building 1 */}
-    <S style={{ left:'10%', top:'76%', width:'14%', height:'18%', borderRadius:'1px' }} op={0.55} />
-    {/* medina building 2 */}
-    <S style={{ left:'26%', top:'72%', width:'12%', height:'22%', borderRadius:'1px' }} op={0.55} />
-    {/* medina building 3 */}
-    <S style={{ left:'52%', top:'74%', width:'16%', height:'20%', borderRadius:'1px' }} op={0.55} />
-    {/* medina building 4 */}
-    <S style={{ left:'70%', top:'76%', width:'14%', height:'18%', borderRadius:'1px' }} op={0.55} />
-    {/* minaret */}
-    <S style={{ left:'40%', top:'62%', width:'6%', height:'16%', borderRadius:'1px' }} op={0.7} />
-    {/* ground */}
-    <S style={{ left:'0', bottom:'0', width:'100%', height:'5%' }} op={0.8} />
+    {wrap(<>
+      {/* Sol */}
+      <rect x="0" y="92" width="100" height="3"/>
+
+      {/* Montagnes du Rif en arrière-plan */}
+      <polygon points="0,55 18,28 36,50 50,32 64,52 82,30 100,55 100,92 0,92" opacity="0.55"/>
+      {/* Neige sur les sommets */}
+      <polygon points="14,33 22,33 18,28" fill="rgba(255,255,255,0.5)" stroke="none"/>
+      <polygon points="46,37 54,37 50,32" fill="rgba(255,255,255,0.5)" stroke="none"/>
+      <polygon points="78,35 86,35 82,30" fill="rgba(255,255,255,0.5)" stroke="none"/>
+
+      {/* Médina blanche — maisons cubiques empilées (la "colombe blanche") */}
+      {/* Rangée arrière */}
+      <rect x="6"  y="60" width="14" height="32"/>
+      <rect x="22" y="56" width="12" height="36"/>
+      <rect x="36" y="62" width="14" height="30"/>
+      <rect x="52" y="58" width="12" height="34"/>
+      <rect x="66" y="64" width="14" height="28"/>
+      <rect x="82" y="60" width="12" height="32"/>
+
+      {/* Minaret central */}
+      <rect x="46" y="40" width="8" height="22"/>
+      <rect x="44" y="38" width="12" height="2.5"/>
+      <rect x="48" y="32" width="4" height="6"/>
+      <polygon points="46,32 50,26 54,32"/>
+      <circle cx="50" cy="24" r="1.2"/>
+
+      {/* Petites fenêtres (rectangles noirs) */}
+      <rect x="9" y="68" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="14" y="68" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="25" y="64" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="29" y="64" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="39" y="70" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="44" y="70" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="55" y="66" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="59" y="66" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="69" y="72" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="74" y="72" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="85" y="68" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+      <rect x="89" y="68" width="2.5" height="5" fill="rgba(0,0,0,0.3)" stroke="none"/>
+
+      {/* Petites portes */}
+      <rect x="10" y="80" width="3.5" height="8" fill="rgba(0,0,0,0.32)" stroke="none"/>
+      <rect x="40" y="82" width="3.5" height="8" fill="rgba(0,0,0,0.32)" stroke="none"/>
+      <rect x="70" y="84" width="3.5" height="6" fill="rgba(0,0,0,0.32)" stroke="none"/>
+      <rect x="86" y="82" width="3.5" height="8" fill="rgba(0,0,0,0.32)" stroke="none"/>
+    </>)}
   </div>
 )
 
-/* ─────────────────────────────────────────
-   Registry
-───────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   EXPORT MAP — utilisé dans Home.jsx
+────────────────────────────────────────────────────────── */
 export const CITY_GRAPHICS = {
   Casablanca: CasablancaGraphic,
   Marrakech:  MarrakechGraphic,
   Rabat:      RabatGraphic,
   Agadir:     AgadirGraphic,
-  Fès:        FèsGraphic,
+  Fès:        FesGraphic,
   Tanger:     TangerGraphic,
   Essaouira:  EssaouiraGraphic,
-  Kénitra:    KénitraGraphic,
-  Meknès:     MeknèsGraphic,
+  Kénitra:    KenitraGraphic,
+  Meknès:     MeknesGraphic,
   Oujda:      OujdaGraphic,
-  Tétouan:    TétouanGraphic,
+  Tétouan:    TetouanGraphic,
 }

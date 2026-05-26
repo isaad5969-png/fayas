@@ -1,5 +1,6 @@
-import { Suspense, lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Suspense, lazy, useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import Lenis from 'lenis'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -15,6 +16,10 @@ const Register = lazy(() => import('./pages/Register'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Loyalty = lazy(() => import('./pages/Loyalty'))
+const SubmitEvent = lazy(() => import('./pages/SubmitEvent'))
+const MyProposals = lazy(() => import('./pages/MyProposals'))
+const Favorites = lazy(() => import('./pages/Favorites'))
+const MapPage   = lazy(() => import('./pages/MapPage'))
 
 function PageLoader() {
   return (
@@ -26,10 +31,22 @@ function PageLoader() {
 }
 
 export default function App() {
+  const location = useLocation()
+
+  useEffect(() => {
+    const lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
+    const raf = (time) => { lenis.raf(time); requestAnimationFrame(raf) }
+    requestAnimationFrame(raf)
+    return () => lenis.destroy()
+  }, [])
+
+  // Scroll to top on route change
+  useEffect(() => { window.scrollTo(0, 0) }, [location.pathname])
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 page-transition" key={location.pathname}>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -40,6 +57,12 @@ export default function App() {
             } />
             <Route path="/universities" element={<Universities />} />
             <Route path="/universities/:id" element={<UniversityEvents />} />
+            <Route path="/universities/:id/submit" element={
+              <ProtectedRoute><SubmitEvent /></ProtectedRoute>
+            } />
+            <Route path="/my-proposals" element={
+              <ProtectedRoute><MyProposals /></ProtectedRoute>
+            } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={
@@ -48,6 +71,8 @@ export default function App() {
             <Route path="/loyalty" element={
               <ProtectedRoute><Loyalty /></ProtectedRoute>
             } />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/map"       element={<MapPage />} />
             <Route path="/admin" element={
               <ProtectedRoute adminOnly><Admin /></ProtectedRoute>
             } />
