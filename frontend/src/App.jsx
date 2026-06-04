@@ -79,7 +79,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
+      {location.pathname !== '/map' && <Footer />}
     </div>
   )
 }

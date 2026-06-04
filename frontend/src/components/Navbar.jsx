@@ -58,7 +58,7 @@ export default function Navbar() {
 
   /* ── Navbar base classes ── */
   const navBase = isDark
-    ? `sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'navbar-night-solid shadow-2xl shadow-black/50' : 'navbar-night'}`
+    ? `sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'navbar-v2-scrolled' : 'navbar-night'}`
     : `sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-2xl shadow-xl shadow-purple-500/5 border-b border-gray-100/80' : 'bg-white/95 backdrop-blur-md border-b border-gray-100'}`
 
   /* ── Icon button classes ── */

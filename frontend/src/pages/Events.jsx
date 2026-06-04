@@ -4,6 +4,8 @@ import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
+import SmartConcierge from '../components/SmartConcierge'
+import AmbientScene3D from '../components/AmbientScene3D'
 
 const EventMap = lazy(() => import('../components/EventMap'))
 
@@ -259,23 +261,44 @@ export default function Events() {
   const clearSearch  = () => { setSearch(''); setSearchInput('') }
   const hasFilters   = type !== 'all' || city !== 'all' || search
   const resetAll     = () => { setType('all'); setCity('all'); clearSearch() }
+  const applySmartFilters = ({ city: smartCity, type: smartType }) => {
+    setCity(smartCity || 'all')
+    setType(smartType || 'all')
+    setViewMode('grid')
+    clearSearch()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] transition-colors duration-300">
 
-      {/* ══ Header ══ */}
-      <div className="bg-white dark:bg-gradient-to-b dark:from-[#0d0d18] dark:to-[#0a0a0f] border-b border-gray-100 dark:border-white/[0.05]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* ══ Header 3D ══ */}
+      <div className="relative overflow-hidden page-header-3d"
+           style={{ background: 'linear-gradient(180deg, #09091a 0%, #0d0d20 60%, #0a0a0f 100%)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+
+        {/* Ambient 3D — concert / nightlife colors */}
+        <AmbientScene3D
+          colors={['#7c3aed', '#ec4899', '#be123c', '#f59e0b']}
+          count={16}
+          seed={77}
+          style={{ zIndex: 0 }}
+        />
+
+        {/* Barre colorée top */}
+        <div className="absolute top-0 left-0 right-0 h-0.5"
+             style={{ background: 'linear-gradient(90deg, #7c3aed, #ec4899, #22d3ee, #f59e0b)', zIndex: 2 }} />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={{ zIndex: 2 }}>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="eyebrow-night mb-3 inline-flex">
+              <span className="eyebrow-night mb-3 inline-flex" style={{ color: '#a78bfa' }}>
                 <span className="dot-neon" />
                 Billetterie
               </span>
-              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-2">
+              <h1 className="text-4xl font-extrabold text-white tracking-tight mt-2"
+                  style={{ textShadow: '0 0 40px rgba(124,58,237,0.4)' }}>
                 Tous les événements
               </h1>
-              <p className="text-gray-500 dark:text-slate-400 mt-1">
+              <p className="mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 Galas, soirées, concerts et événements universitaires au Maroc
               </p>
             </div>
@@ -400,6 +423,14 @@ export default function Events() {
             </div>
           </div>
         </div>
+
+        {!loading && events.length > 0 && (
+          <SmartConcierge
+            events={events}
+            currentCity={city}
+            onApply={applySmartFilters}
+          />
+        )}
 
         {/* ══ Results ══ */}
         {loading ? (

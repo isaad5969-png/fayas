@@ -34,7 +34,8 @@ const formatDate = d => dateFormatter.format(new Date(d))
 function EventCard({ event }) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError,  setImgError]  = useState(false)
-  const [tilt,      setTilt]      = useState({ x: 0, y: 0 })
+  const [tilt,      setTilt]      = useState({ x: 0, y: 0, mx: 0.5, my: 0.5 })
+  const [hovered,   setHovered]   = useState(false)
   const cardRef = useRef(null)
 
   const cfg       = TYPE_CONFIG[event.type] || TYPE_CONFIG.autre
@@ -51,24 +52,38 @@ function EventCard({ event }) {
   const handleMouseMove = e => {
     if (!cardRef.current) return
     const rect = cardRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width  - 0.5
-    const y = (e.clientY - rect.top)  / rect.height - 0.5
-    setTilt({ x: y * -5, y: x * 5 })
+    const mx = (e.clientX - rect.left) / rect.width
+    const my = (e.clientY - rect.top)  / rect.height
+    setTilt({ x: (my - 0.5) * -12, y: (mx - 0.5) * 12, mx, my })
   }
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 })
+  const handleMouseEnter = () => setHovered(true)
+  const handleMouseLeave = () => {
+    setHovered(false)
+    setTilt({ x: 0, y: 0, mx: 0.5, my: 0.5 })
+  }
 
   const eventUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/events/${event.id}`
     : `/events/${event.id}`
 
+  const accentColor = uColor || '#7c3aed'
+
   return (
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transition: 'transform 0.2s ease-out',
+        transform: `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateZ(${hovered ? 10 : 0}px)`,
+        transition: hovered
+          ? 'transform 0.08s linear'
+          : 'transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transformStyle: 'preserve-3d',
+        willChange: 'transform',
+        filter: hovered
+          ? `drop-shadow(${tilt.y * -0.8}px ${Math.abs(tilt.x) * 0.8}px 28px ${accentColor}55) drop-shadow(0 24px 48px rgba(0,0,0,0.6))`
+          : `drop-shadow(0 4px 16px rgba(0,0,0,0.25))`,
       }}
       className="relative h-full"
     >
@@ -76,16 +91,47 @@ function EventCard({ event }) {
       <FavoriteButton eventId={event.id} eventTitle={event.title} />
       <ShareButton variant="floating" eventTitle={event.title} eventUrl={eventUrl} />
 
+      {/* ── Holographic shimmer iridescent ── */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none z-40"
+        style={{
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+          background: `
+            linear-gradient(
+              ${115 + tilt.y * 3}deg,
+              transparent            0%,
+              rgba(255,0,128,0.06)   20%,
+              rgba(120,0,255,0.09)   35%,
+              rgba(0,200,255,0.10)   50%,
+              rgba(0,255,150,0.07)   65%,
+              rgba(255,200,0,0.06)   80%,
+              transparent            100%
+            )`,
+          backgroundSize: '200% 200%',
+          backgroundPosition: `${tilt.mx * 100}% ${tilt.my * 100}%`,
+          mixBlendMode: 'screen',
+        }}
+      />
+
+      {/* Specular highlight — suit la souris */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none z-39"
+        style={{
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          background: `radial-gradient(ellipse 55% 38% at ${tilt.mx * 100}% ${tilt.my * 100}%, rgba(255,255,255,0.14) 0%, transparent 68%)`,
+        }}
+      />
+
       <Link
         to={`/events/${event.id}`}
         className="group flex flex-col h-full rounded-2xl overflow-hidden
                    bg-white dark:bg-[#0d0d16]
                    border border-gray-100 dark:border-white/[0.07]
                    shadow-sm dark:shadow-none
-                   hover:shadow-2xl hover:shadow-violet-500/15
-                   dark:hover:shadow-[0_20px_60px_-10px_rgba(124,58,237,0.35),0_0_0_1px_rgba(124,58,237,0.25)]
-                   dark:hover:border-violet-500/40
-                   transition-all duration-500
+                   hover:border-violet-500/30
+                   transition-colors duration-300
                    card-accent-top"
       >
         {/* ══ PHOTO ══ */}

@@ -21,7 +21,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-gray-950 to-purple-950/40 text-gray-400 border-t border-purple-900/30 overflow-hidden">
+    <footer className="relative text-gray-400 overflow-hidden" style={{ background: '#07070d', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
 
       {/* Decorative blob */}
       <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-purple-600/10 blur-3xl pointer-events-none" />
@@ -82,16 +82,13 @@ export default function Footer() {
             </p>
             <div className="flex gap-2">
               {[
-                { icon: 'whatsapp', label: 'WhatsApp',  color: 'hover:bg-emerald-600' },
-                { icon: 'facebook', label: 'Facebook',  color: 'hover:bg-blue-600' },
-                { icon: 'twitter',  label: 'Twitter',   color: 'hover:bg-sky-500' },
-                { icon: 'mail',     label: 'Email',     color: 'hover:bg-purple-600' },
-              ].map(({ icon, label, color }) => (
-                <a key={label} href="#" aria-label={label}
-                  className={`w-10 h-10 bg-gray-800/60 border border-gray-700/40 backdrop-blur-sm ${color}
-                             rounded-xl flex items-center justify-center transition-all duration-200
-                             hover:scale-110 hover:shadow-lg hover:border-transparent group`}>
-                  <Icon name={icon} className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                { icon: 'whatsapp', label: 'WhatsApp' },
+                { icon: 'facebook', label: 'Facebook' },
+                { icon: 'twitter',  label: 'Twitter'  },
+                { icon: 'mail',     label: 'Email'    },
+              ].map(({ icon, label }) => (
+                <a key={label} href="#" aria-label={label} className="footer-v2-soc-btn">
+                  <Icon name={icon} className="w-4 h-4" />
                 </a>
               ))}
             </div>
@@ -173,8 +170,8 @@ export default function Footer() {
             <div>
               <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Paiements sécurisés</p>
               <div className="flex flex-wrap items-center gap-2">
-                {['VISA', 'Mastercard', 'CMI', 'Cash Plus', 'PayPal'].map(method => (
-                  <div key={method} className="px-3 py-1.5 bg-gray-800/60 border border-gray-700/50 rounded-lg text-xs font-bold text-gray-300">
+                {['VISA', 'M/C', 'CMI', 'CASH+', 'PAYPAL'].map(method => (
+                  <div key={method} className="pay-icon-v2">
                     {method}
                   </div>
                 ))}

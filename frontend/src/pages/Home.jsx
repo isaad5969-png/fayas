@@ -6,7 +6,8 @@ import { Icon } from '../components/Icons'
 import { CITY_GRAPHICS } from '../components/CityGraphic'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useCountUp } from '../hooks/useCountUp'
-import HeroParticles from '../components/HeroParticles'
+import NightlifeIntro3D from '../components/NightlifeIntro3D'
+import toast from 'react-hot-toast'
 
 /* ── Animated stat item ── */
 function StatItem({ label, num, suffix, icon, color, delay = 0 }) {
@@ -24,11 +25,11 @@ function StatItem({ label, num, suffix, icon, color, delay = 0 }) {
                   transition-all duration-700
                   ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
     >
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
+      <div className="stat-pill-v2-icn v" style={{ width: 36, height: 36, borderRadius: '10px' }}>
         <Icon name={icon} className="w-5 h-5" strokeWidth={2} />
       </div>
-      <span className="text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums">{display}</span>
-      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">{label}</span>
+      <span className="text-2xl font-extrabold tabular-nums" style={{ color: 'var(--v2-tx1)' }}>{display}</span>
+      <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--v2-tx3)' }}>{label}</span>
     </div>
   )
 }
@@ -69,6 +70,52 @@ const FEATURES = [
   { icon: 'rocket', title: 'Évolutif',          desc: 'De 50 à 5 000 participants, la plateforme s\'adapte sans aucune configuration supplémentaire.',        accent: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'},
   { icon: 'bolt',   title: 'Ultra-rapide',      desc: 'Interface optimisée pour mobile, réservation en 2 clics et chargement instantané — même en 3G.',       accent: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'    },
 ]
+
+/* ─────────────────────────────────────
+   NEWSLETTER V2
+───────────────────────────────────── */
+function NewsletterV2() {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!email.trim() || !email.includes('@')) return toast.error('Email invalide')
+    setLoading(true)
+    setTimeout(() => {
+      toast.success('Inscription réussie ! Vous recevrez nos meilleures soirées 💌')
+      setEmail('')
+      setLoading(false)
+    }, 800)
+  }
+
+  return (
+    <div className="newsletter-v2">
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <span className="kicker-v2 mb-3">Newsletter</span>
+        <h3 className="text-2xl md:text-3xl font-extrabold mt-3 mb-2"
+          style={{ color: 'var(--v2-tx1)', letterSpacing: '-0.02em' }}>
+          Restez à l'affût des meilleures soirées
+        </h3>
+        <p style={{ fontSize: '14px', color: 'var(--v2-tx2)', lineHeight: 1.65, maxWidth: '400px' }}>
+          Recevez chaque semaine notre sélection d'événements exclusifs, en avant-première.
+        </p>
+      </div>
+      <form className="newsletter-v2-form" onSubmit={handleSubmit} style={{ position: 'relative', zIndex: 1 }}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="votre@email.ma"
+          required
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? '...' : "S'inscrire"}
+        </button>
+      </form>
+    </div>
+  )
+}
 
 /* ─────────────────────────────────────
    CITIES SECTION — Premium redesign
@@ -235,10 +282,7 @@ function CitiesSection({ visible, sectionRef, onCityClick }) {
   const totalEvents = CITIES.reduce((s, c) => s + c.count, 0)
 
   return (
-    <section className="relative py-20 overflow-hidden
-                        bg-gradient-to-b from-gray-50 via-white to-purple-50/30
-                        dark:from-[#0a0a0f] dark:via-[#0a0a0f] dark:to-[#0d0b1a]
-                        transition-colors duration-300">
+    <section className="relative py-20 overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a0a0d 0%, #0d0b1a 100%)' }}>
 
       {/* Decorative ambient blobs */}
       <div className="absolute top-20 -left-20 w-80 h-80 rounded-full bg-purple-300/20 dark:bg-purple-600/10 blur-3xl pointer-events-none" />
@@ -247,44 +291,29 @@ function CitiesSection({ visible, sectionRef, onCityClick }) {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={sectionRef}>
 
-          {/* ── Premium header ── */}
+          {/* ── Header V2 ── */}
           <div className={`text-center max-w-3xl mx-auto mb-10 transition-all duration-700
                            ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            {/* Eyebrow badge */}
-            <div className="inline-flex items-center gap-2.5 bg-white dark:bg-[#13131a]
-                            border border-purple-200 dark:border-purple-500/30 shadow-lg shadow-purple-500/10
-                            text-purple-700 dark:text-purple-400 text-[11px] font-bold uppercase
-                            tracking-[0.2em] px-4 py-2 rounded-full mb-5">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-600" />
-              </span>
-              Carte des destinations
-            </div>
-
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-3">
+            <span className="kicker-v2 mb-4">Carte des destinations</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold mt-4 mb-3"
+              style={{ color: 'var(--v2-tx1)', letterSpacing: '-0.035em' }}>
               Explorez par{' '}
-              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent bg-gradient-sweep">
-                ville
-              </span>
+              <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>ville</em>
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg leading-relaxed">
+            <p style={{ color: 'var(--v2-tx2)', fontSize: '16px' }}>
               {CITIES.length} destinations · {totalEvents}+ événements · Tout le Maroc à portée de clic
             </p>
-
-            {/* Mini stats inline */}
             <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
               {[
                 { icon: 'sparkles', label: `${totalEvents}+ événements` },
                 { icon: 'map',      label: `${CITIES.length} villes`     },
                 { icon: 'bolt',     label: 'Réservation instantanée'    },
               ].map(m => (
-                <span key={m.label}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                             bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-white/[0.07]
-                             text-xs font-semibold text-gray-700 dark:text-slate-300 shadow-sm">
-                  <Icon name={m.icon} className="w-3.5 h-3.5 text-purple-500" />
-                  {m.label}
+                <span key={m.label} className="stat-pill-v2" style={{ padding: '7px 14px' }}>
+                  <span className="stat-pill-v2-icn v" style={{ width: 20, height: 20 }}>
+                    <Icon name={m.icon} className="w-3 h-3" />
+                  </span>
+                  <span className="stat-pill-v2-l" style={{ fontSize: '12px' }}>{m.label}</span>
                 </span>
               ))}
             </div>
@@ -300,16 +329,15 @@ function CitiesSection({ visible, sectionRef, onCityClick }) {
                 <button
                   key={r.id}
                   onClick={() => setRegion(r.id)}
-                  className={`group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
-                              transition-all duration-300
-                              ${active
-                                ? `bg-gradient-to-r ${r.color} text-white shadow-lg scale-105`
-                                : 'bg-white dark:bg-[#13131a] text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-white/[0.06] hover:border-purple-300 dark:hover:border-purple-500/50 hover:text-purple-700 dark:hover:text-purple-300'}`}
+                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300"
+                  style={active
+                    ? { background: 'linear-gradient(135deg, var(--v2-vio-3), var(--v2-vio))', color: 'white', transform: 'scale(1.05)', boxShadow: 'var(--v2-vio-glow)' }
+                    : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)', color: 'var(--v2-tx2)' }}
                 >
-                  <Icon name={r.icon} className={`w-3.5 h-3.5 ${active ? '' : 'group-hover:scale-110 transition-transform'}`} />
+                  <Icon name={r.icon} className="w-3.5 h-3.5" />
                   {r.label}
                   {active && (
-                    <span className="text-[10px] bg-white/30 px-1.5 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-white/25 px-1.5 py-0.5 rounded-full font-bold">
                       {filtered.length}
                     </span>
                   )}
@@ -334,26 +362,22 @@ function CitiesSection({ visible, sectionRef, onCityClick }) {
           )}
 
           {/* ── Bottom CTA strip ── */}
-          <div className={`mt-10 flex flex-col sm:flex-row items-center justify-center gap-4
-                           p-6 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600
-                           shadow-xl shadow-purple-500/30
+          <div className={`mt-10 flex flex-col sm:flex-row items-center justify-center gap-5 p-6 rounded-2xl
                            transition-all duration-700 delay-300
-                           ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="flex items-center gap-3 text-white">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Icon name="sparkles" className="w-6 h-6" />
+                           ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            style={{ background: 'rgba(20,20,28,0.55)', backdropFilter: 'blur(40px)', border: '1px solid rgba(255,255,255,0.10)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'var(--v2-vio-g)', color: 'var(--v2-vio-3)' }}>
+                <Icon name="map" className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-extrabold text-lg">Vous ne trouvez pas votre ville ?</p>
-                <p className="text-purple-100 text-sm">Découvrez tous nos événements ou recevez les alertes.</p>
+                <p className="font-extrabold text-base" style={{ color: 'var(--v2-tx1)' }}>Vous ne trouvez pas votre ville ?</p>
+                <p className="text-sm" style={{ color: 'var(--v2-tx2)' }}>Découvrez tous nos événements ou recevez les alertes.</p>
               </div>
             </div>
-            <Link to="/events"
-              className="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-5 py-3 rounded-xl
-                         hover:bg-purple-50 hover:scale-105 active:scale-95
-                         transition-all shadow-lg">
+            <Link to="/events" className="btn-neon-v2 text-sm">
               Voir tous les événements
-              <Icon name="arrow_right" className="w-4 h-4" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </Link>
           </div>
 
@@ -391,116 +415,152 @@ export default function Home() {
     <div className="animate-fade-up dark:bg-[#0a0a0f]">
 
       {/* ══════════════════════════════════
-          HERO — Ultra-modern cinematic
+          HERO V2 — Cinematic nightlife
       ══════════════════════════════════ */}
-      <section className="relative bg-mesh-gradient text-white overflow-hidden min-h-[92vh] flex items-center">
+      <section className="relative text-white overflow-hidden min-h-screen flex flex-col"
+        style={{ background: '#0a0a0d' }}>
 
-        {/* Grain texture */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'a\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23a)\'/%3E%3C/svg%3E")' }} />
-
-        {/* Blobs ambiants */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-          <div className="absolute -top-40 -right-20 w-[500px] h-[500px] rounded-full bg-pink-500/15 blur-3xl animate-float-slow" />
-          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-indigo-500/20 blur-3xl animate-float" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-purple-900/30 blur-3xl animate-blob" />
-          <div className="absolute top-1/4 right-1/3 w-40 h-40 rounded-full bg-cyan-400/10 blur-2xl animate-float-medium" />
-          {/* Grid overlay subtle */}
-          <div className="absolute inset-0 opacity-[0.04]"
-            style={{ backgroundImage: 'linear-gradient(rgb(255 255 255 / 0.1) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        {/* Radial gradient background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse 65% 70% at 70% 35%, rgba(124,58,237,0.32) 0%, transparent 60%), radial-gradient(ellipse 45% 50% at 20% 70%, rgba(245,158,11,0.10) 0%, transparent 55%), radial-gradient(ellipse 35% 40% at 80% 80%, rgba(59,130,246,0.10) 0%, transparent 55%)'
+          }} />
+          {/* Grid overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
+            backgroundSize: '88px 88px',
+            WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 55% 0%, black 0%, transparent 65%)',
+            maskImage: 'radial-gradient(ellipse 90% 80% at 55% 0%, black 0%, transparent 65%)'
+          }} />
         </div>
 
-        {/* Floating particles */}
-        <HeroParticles />
+        <NightlifeIntro3D active={true} />
 
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50/80 dark:from-[#0a0a0f] to-transparent pointer-events-none" />
+        {/* Floor glow */}
+        <div className="hero-floor-v2" aria-hidden="true" />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full text-center">
+        {/* Crowd silhouette */}
+        <div className="hero-crowd-wrap" aria-hidden="true">
+          <svg viewBox="0 0 1200 240" preserveAspectRatio="xMidYMax slice">
+            <defs>
+              <linearGradient id="crowd-g-v2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#000" stopOpacity="0.40"/>
+                <stop offset="55%" stopColor="#000" stopOpacity="0.88"/>
+                <stop offset="100%" stopColor="#000" stopOpacity="1"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,240 L0,200 Q30,200 40,170 Q50,138 80,138 Q108,138 120,168 Q130,180 150,180 Q170,180 178,148 Q186,122 215,122 Q244,122 250,162 Q256,180 280,180 Q306,180 314,148 Q322,118 355,118 Q388,118 393,155 Q398,180 425,180 Q456,180 462,138 Q468,112 498,112 Q528,112 533,162 Q538,185 565,185 Q596,185 602,142 Q608,115 638,115 Q668,115 673,160 Q678,180 705,180 Q738,180 743,132 Q748,112 778,112 Q808,112 813,156 Q818,180 848,180 Q878,180 883,142 Q888,118 918,118 Q948,118 953,160 Q958,180 988,180 Q1018,180 1024,138 Q1029,112 1058,112 Q1088,112 1093,160 Q1098,180 1128,180 Q1158,180 1164,148 Q1170,128 1198,128 L1200,128 L1200,240 Z" fill="url(#crowd-g-v2)"/>
+          </svg>
+        </div>
+
+        {/* Vignette + bottom fade */}
+        <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 200px rgba(0,0,0,0.45)' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{ background: 'linear-gradient(transparent, #0a0a0d)' }} />
+
+        {/* ── Main content ── */}
+        <div className="relative z-10 flex-1 flex flex-col max-w-[1320px] mx-auto px-4 sm:px-8 w-full" style={{ paddingTop: '128px', paddingBottom: '80px' }}>
 
           {/* Eyebrow pill */}
-          <div className="inline-flex items-center gap-2.5 glass-panel-2026 px-5 py-2 rounded-full text-sm font-semibold mb-8 text-white/90
-                          fade-slide-down anim-delay-100">
-            <span className="relative flex h-2 w-2 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-            </span>
-            <span>🇲🇦</span>
-            Plateforme N°1 de billetterie au Maroc
+          <div className="flex justify-center mb-8">
+            <div className="pill-glass-v2 fade-slide-down anim-delay-100">
+              <span className="pill-glass-dot-v2" />
+              <span className="pill-glass-tag-v2">MA</span>
+              Plateforme N°1 de billetterie au Maroc
+            </div>
           </div>
 
-          {/* Main headline */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight fade-blur-in anim-delay-200">
-            Vivez les meilleures{' '}
-            <br className="hidden md:block" />
-            <span className="relative inline-block mt-1">
-              <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-400 bg-clip-text text-transparent bg-gradient-sweep">
-                soirées du Maroc
-              </span>
-              <span className="absolute inset-x-0 bottom-2 h-4 bg-yellow-400/20 -z-0 rounded-full blur-md" />
-            </span>
-          </h1>
+          {/* Hero headline with word curtain */}
+          <div className="hero-intro-layout flex-1 pb-10">
+            <div className="hero-intro-copy">
+            <h1 className="font-extrabold mb-8"
+              style={{ fontSize: 'clamp(46px, 8vw, 118px)', lineHeight: 0.95, letterSpacing: 0, maxWidth: '920px', textWrap: 'balance' }}>
+              <span className="word-wrap"><span className="word">Vivez</span></span>{' '}
+              <span className="word-wrap"><span className="word">les</span></span>{' '}
+              <span className="word-wrap"><span className="word">meilleures</span></span>
+              <br />
+              <span className="word-wrap"><span className="word grad-amber">soirées</span></span>{' '}
+              <span className="word-wrap"><span className="word grad-amber">du</span></span>{' '}
+              <span className="word-wrap"><span className="word grad-amber">Maroc.</span></span>
+            </h1>
 
-          <p className="text-white/65 text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto fade-slide-up anim-delay-300">
-            Galas · Soirées · Événements universitaires — réservez en quelques secondes pour les événements les plus exclusifs du Royaume.
-          </p>
+            <p className="mb-8" style={{ maxWidth: '620px', fontSize: '17px', fontWeight: 400, lineHeight: 1.7, color: 'rgba(255,255,255,0.70)' }}>
+              Une introduction immersive pour les galas, concerts et soirées exclusives du Maroc. Réservez vite, arrivez prêt, vivez une expérience premium.
+            </p>
 
-          {/* Glassmorphism search bar — Airbnb style */}
-          <form
-            onSubmit={e => { e.preventDefault(); const v = e.target.q.value.trim(); if (v) navigate(`/events?search=${encodeURIComponent(v)}`) }}
-            className="flex items-center gap-2 max-w-xl mx-auto mb-10 glass-panel-2026 rounded-2xl p-2 fade-slide-up anim-delay-400"
-          >
-            <Icon name="search" className="w-5 h-5 text-white/50 ml-3 flex-shrink-0" />
-            <input
-              name="q"
-              type="text"
-              placeholder="Rechercher un événement, une ville, une soirée…"
-              className="flex-1 bg-transparent text-white placeholder:text-white/40 text-sm font-medium outline-none py-2 px-2"
-            />
-            <button type="submit"
-              className="flex-shrink-0 btn-neon text-sm px-5 py-2.5 rounded-xl">
-              Chercher
-            </button>
-          </form>
+            {/* V2 search bar */}
+            <form
+              onSubmit={e => { e.preventDefault(); const v = e.target.q.value.trim(); if (v) navigate(`/events?search=${encodeURIComponent(v)}`) }}
+              className="hero-search-v2 fade-slide-up anim-delay-400"
+            >
+              <Icon name="search" className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.36)' }} />
+              <input
+                name="q"
+                type="text"
+                placeholder="Rechercher un événement, une ville, une soirée…"
+              />
+              <button type="submit">Chercher</button>
+            </form>
 
-          {/* CTA buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-14 fade-slide-up anim-delay-500">
-            <Link to="/events"
-              className="btn-primary px-7 py-3.5 text-base shadow-xl shadow-purple-900/40 hover:scale-105">
-              <Icon name="sparkles" className="w-4 h-4" />
-              Découvrir les événements
-            </Link>
-            <Link to="/universities"
-              className="glass-panel-2026 text-white font-semibold px-7 py-3.5 rounded-xl
-                         hover:border-violet-400/40 transition-all hover:scale-105 duration-200
-                         inline-flex items-center gap-2">
-              <Icon name="graduation" className="w-4 h-4" />
-              Soirées universitaires
-            </Link>
-          </div>
+            {/* CTA buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-12 fade-slide-up anim-delay-500">
+              <Link to="/events" className="btn-neon-v2">
+                Découvrir les événements
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              </Link>
+              <Link to="/universities" className="btn-glass-v2">
+                <Icon name="graduation" className="w-4 h-4" />
+                Soirées universitaires
+              </Link>
+            </div>
 
-          {/* Floating stat pills */}
-          <div className="flex flex-wrap items-center justify-center gap-3 fade-slide-up anim-delay-600">
-            {STATS.map(s => (
-              <div key={s.label} className="stat-pill">
-                <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${s.color}`}>
-                  <Icon name={s.icon} className="w-3.5 h-3.5" />
+            {/* V2 Stat pills */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5 fade-slide-up anim-delay-600">
+              {[
+                { icon: 'sparkles', label: 'Événements', num: '50+', cls: 'v' },
+                { icon: 'graduation', label: 'Universités', num: '10', cls: 'a' },
+                { icon: 'globe', label: 'Villes', num: '12', cls: 'b' },
+                { icon: 'ticket', label: 'Billets vendus', num: '2 000+', cls: 'e' },
+              ].map(s => (
+                <div key={s.label} className="stat-pill-v2">
+                  <span className={`stat-pill-v2-icn ${s.cls}`}>
+                    <Icon name={s.icon} className="w-3 h-3" />
+                  </span>
+                  <span className="stat-pill-v2-n">{s.num}</span>
+                  <span className="stat-pill-v2-l">{s.label}</span>
                 </div>
-                <span className="font-extrabold tabular-nums">{s.num}{s.suffix}</span>
-                <span className="text-white/60 font-medium">{s.label}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+            </div>
           </div>
+        </div>
+
+        {/* Scroll hint */}
+        <div className="scroll-hint hidden md:flex">
+          <span>Scroll</span>
+          <div className="scroll-mouse"><div className="scroll-mouse-dot" /></div>
+        </div>
+
+        {/* Bottom corner annotations */}
+        <div className="hero-corner-l">
+          <div className="hero-counter">
+            <span className="hero-counter-n">01</span>
+            <span className="hero-counter-t">/04</span>
+          </div>
+          <span className="hero-counter-lbl">Accueil</span>
+        </div>
+        <div className="hero-corner-r">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
         </div>
       </section>
 
       {/* ══════════════════════════════════
-          STATS BAR — Dashboard Notion style
+          STATS BAR
       ══════════════════════════════════ */}
-      <section className="relative bg-white dark:bg-[#0a0a0f] border-b border-gray-100/80 dark:border-white/[0.05] transition-colors duration-300 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/[0.02] via-transparent to-pink-500/[0.02] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6
-                        grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100 dark:divide-white/[0.05]">
+      <section style={{ background: '#0a0a0d', borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="overflow-hidden">
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-8 py-6
+                        grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.05]">
           {STATS.map((s, i) => (
             <StatItem key={s.label} {...s} delay={i * 80} />
           ))}
@@ -513,25 +573,25 @@ export default function Home() {
       <CitiesSection visible={citiesVisible} sectionRef={citiesRef} onCityClick={(name) => navigate(`/events?city=${encodeURIComponent(name)}`)} />
 
       {/* ══════════════════════════════════
-          UPCOMING EVENTS
+          UPCOMING EVENTS — V2
       ══════════════════════════════════ */}
-      <section ref={eventsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-18">
-        <div className={`flex items-end justify-between mb-10 pt-12 transition-all duration-700
+      <section ref={eventsRef} style={{ background: '#0a0a0d', padding: '80px 0' }}>
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-8">
+        <div className={`flex items-end justify-between mb-10 transition-all duration-700
                          ${eventsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div>
-            <p className="text-violet-500 dark:text-violet-400 text-sm font-bold uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
-              <span className="inline-block w-1 h-1 rounded-full bg-violet-400 animate-pulse" />
-              Billetterie
-            </p>
-            <h2 className="section-title">Événements à venir</h2>
-            <p className="section-sub">Les galas, soirées et concerts les plus attendus du moment</p>
+            <span className="kicker-v2 mb-3">Billetterie</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold mt-4 mb-2"
+              style={{ color: 'var(--v2-tx1)', letterSpacing: '-0.035em' }}>
+              Événements <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>à venir</em>
+            </h2>
+            <p style={{ color: 'var(--v2-tx2)', fontSize: '15px' }}>Les galas, soirées et concerts les plus attendus du Royaume.</p>
           </div>
           <Link to="/events"
-            className="hidden md:inline-flex items-center gap-2 text-sm font-semibold
-                       text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300
-                       transition-colors group">
+            className="hidden md:inline-flex items-center gap-2 text-sm font-semibold transition-colors"
+            style={{ color: 'var(--v2-vio-3)' }}>
             Voir tout
-            <Icon name="arrow_right" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <Icon name="arrow_right" className="w-4 h-4" />
           </Link>
         </div>
 
@@ -565,34 +625,35 @@ export default function Home() {
         <div className="text-center mt-8 md:hidden">
           <Link to="/events" className="btn-primary">Voir tous les événements</Link>
         </div>
+        </div>
       </section>
 
       {/* ══════════════════════════════════
-          UNIVERSITIES
+          UNIVERSITIES — V2
       ══════════════════════════════════ */}
-      <section className="bg-gradient-to-b from-gray-50 dark:from-[#0e0e17] to-white dark:to-[#0a0a0f] py-18 transition-colors duration-300">
-        <div ref={uniRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center mb-10 pt-6 transition-all duration-700
+      <section style={{ background: 'linear-gradient(180deg, #0e0e17 0%, #0a0a0d 100%)' }} className="py-20">
+        <div ref={uniRef} className="max-w-[1320px] mx-auto px-4 sm:px-8">
+          <div className={`text-center mb-10 transition-all duration-700
                            ${uniVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <p className="text-violet-500 dark:text-violet-400 text-sm font-bold uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-2">
-              <span className="inline-block w-1 h-1 rounded-full bg-violet-400 animate-pulse" />
-              Campus
+            <span className="kicker-v2 mb-4">Campus</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-3 mt-4"
+              style={{ letterSpacing: '-0.035em' }}>
+              Soirées <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>universitaires</em>
+            </h2>
+            <p style={{ color: 'var(--v2-tx2)', fontSize: '16px' }}>
+              Chaque université, ses propres soirées exclusives. Retrouvez la vôtre en un clic.
             </p>
-            <h2 className="section-title">Soirées universitaires</h2>
-            <p className="section-sub">Chaque université a ses propres événements exclusifs</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className={`uni-grid-v2 transition-all duration-700 delay-100 ${uniVisible ? 'opacity-100' : 'opacity-0'}`}>
             {universities.map((u, i) => (
               <Link key={u.id} to={`/universities/${u.id}`}
-                className={`group bg-white dark:bg-[#13131a] rounded-2xl border border-gray-100 dark:border-white/[0.06] p-5 text-center
-                           shadow-sm hover:shadow-md dark:hover:shadow-violet-500/15 dark:hover:border-violet-500/30 hover:-translate-y-1.5
-                           transition-all duration-300
-                           ${uniVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}
-                style={{ transitionDelay: `${i * 60}ms`, transitionDuration: '600ms' }}>
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center
-                                shadow-sm group-hover:scale-110 transition-transform duration-300 overflow-hidden
-                                bg-white dark:bg-[#1a1a24] border border-gray-100 dark:border-white/[0.08] p-1.5">
+                className="uni-card-v2"
+                style={{
+                  transitionDelay: `${i * 50}ms`,
+                  '--uni-color': u.color ? `${u.color}33` : 'rgba(124,58,237,0.20)',
+                }}>
+                <div className="uni-logo-v2">
                   {u.logo_url ? (
                     <img
                       src={u.logo_url}
@@ -604,20 +665,15 @@ export default function Home() {
                       }}
                     />
                   ) : null}
-                  <span
-                    className="w-full h-full items-center justify-center text-white text-sm font-extrabold rounded-xl"
-                    style={{ backgroundColor: u.color, display: u.logo_url ? 'none' : 'flex' }}
-                  >
+                  <span style={{ display: u.logo_url ? 'none' : 'flex' }}>
                     {u.short_name.slice(0, 2)}
                   </span>
                 </div>
-                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm leading-tight
-                              group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
-                  {u.short_name}
-                </p>
-                <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">{u.city}</p>
+                <p className="uni-name-v2">{u.short_name}</p>
+                <p className="uni-city-v2">{u.city}</p>
                 {u.event_count > 0 && (
-                  <span className="mt-2 badge bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px]">
+                  <span className="mt-2 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(139,92,246,0.15)', color: 'var(--v2-vio-3)' }}>
                     {u.event_count} evt{u.event_count > 1 ? 's' : ''}
                   </span>
                 )}
@@ -625,9 +681,10 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center mt-10">
-            <Link to="/universities" className="btn-secondary">
-              Voir les 10 universités
+          <div className={`text-center mt-10 transition-all duration-700 delay-300 ${uniVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <Link to="/universities" className="btn-glass-v2">
+              Voir toutes les universités
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </Link>
           </div>
         </div>
@@ -636,14 +693,12 @@ export default function Home() {
       {/* ══════════════════════════════════
           APP DOWNLOAD SECTION
       ══════════════════════════════════ */}
-      <section ref={appRef} className="relative overflow-hidden py-20
-                  bg-gradient-to-br from-gray-50 via-white to-violet-50/20
-                  dark:from-[#0d0d18] dark:via-[#0a0a0f] dark:to-[#0d0b1a]
-                  transition-colors duration-300">
+      <section ref={appRef} className="relative overflow-hidden py-20"
+        style={{ background: 'linear-gradient(180deg, #0a0a0d 0%, #0d0d18 100%)' }}>
 
         {/* Ambient blobs */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-violet-400/8 dark:bg-violet-600/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-blue-400/8 dark:bg-blue-600/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(139,92,246,0.10)' }} />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(59,130,246,0.07)' }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
@@ -651,14 +706,12 @@ export default function Home() {
             {/* ── Left: Text + buttons ── */}
             <div className={`flex-1 text-center lg:text-left transition-all duration-700
                              ${appVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
-              <span className="inline-flex items-center gap-2 text-violet-600 dark:text-violet-400
-                               text-xs font-bold uppercase tracking-widest mb-4">
-                <span className="w-6 h-px bg-violet-500" />
-                Application Mobile
-              </span>
+              <span className="kicker-v2 mb-4">Application Mobile</span>
 
-              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
-                Télécharge l'application<br className="hidden md:block" /> maintenant
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight mt-4"
+                style={{ color: 'var(--v2-tx1)', letterSpacing: '-0.035em' }}>
+                Télécharge l'application<br className="hidden md:block" />{' '}
+                <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>maintenant</em>.
               </h2>
 
               {/* Stats */}
@@ -669,12 +722,11 @@ export default function Home() {
                   { icon: 'globe',    label: '11 Villes au Maroc'       },
                 ].map(s => (
                   <div key={s.label} className="flex items-center gap-3 justify-center lg:justify-start">
-                    <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/15
-                                    border border-violet-100 dark:border-violet-500/25
-                                    flex items-center justify-center flex-shrink-0">
-                      <Icon name={s.icon} className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--v2-vio-g)', border: '1px solid rgba(139,92,246,0.25)' }}>
+                      <Icon name={s.icon} className="w-4 h-4" style={{ color: 'var(--v2-vio-3)' }} />
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">{s.label}</span>
+                    <span className="font-medium text-sm" style={{ color: 'var(--v2-tx2)' }}>{s.label}</span>
                   </div>
                 ))}
               </div>
@@ -855,41 +907,48 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════
-          CTA BANNER
+          NEWSLETTER V2
       ══════════════════════════════════ */}
-      <section ref={ctaRef} className="relative text-white py-20 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1e0533 0%, #0f0f1a 40%, #0c1635 100%)' }}>
-        {/* Neon glow orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 right-0 w-96 h-96 rounded-full bg-violet-600/20 blur-3xl animate-float-slow" />
-          <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl animate-float" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-violet-800/15 blur-3xl" />
-          {/* Grid */}
-          <div className="absolute inset-0 opacity-[0.04]"
-            style={{ backgroundImage: 'linear-gradient(rgb(124 58 237 / 0.3) 1px, transparent 1px), linear-gradient(90deg, rgb(124 58 237 / 0.3) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+      <section style={{ background: '#0a0a0d', padding: '0 0 40px' }}>
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-8">
+          <NewsletterV2 />
         </div>
-        <div className={`relative max-w-3xl mx-auto px-4 text-center
-                         transition-all duration-1000
+      </section>
+
+      {/* ══════════════════════════════════
+          CTA BANNER — V2
+      ══════════════════════════════════ */}
+      <section ref={ctaRef} className="relative text-white py-24 overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0d0020 0%, #0a0a0d 40%, #080820 100%)' }}>
+        {/* Background grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: 'linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }} />
+        {/* Glow orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 right-10 w-80 h-80 rounded-full blur-3xl" style={{ background: 'rgba(139,92,246,0.18)' }} />
+          <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full blur-3xl" style={{ background: 'rgba(245,158,11,0.08)' }} />
+        </div>
+        <div className={`relative max-w-3xl mx-auto px-4 text-center transition-all duration-1000
                          ${ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
-            Prêt à vivre des moments inoubliables ?
+          <span className="kicker-v2 mb-6">Rejoignez-nous</span>
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-5 mt-4"
+            style={{ letterSpacing: '-0.04em', color: 'var(--v2-tx1)' }}>
+            Prêt à vivre des moments <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>inoubliables</em> ?
           </h2>
-          <p className="text-white/65 text-lg mb-10 leading-relaxed">
+          <p className="mb-10 leading-relaxed" style={{ fontSize: '17px', color: 'var(--v2-tx2)' }}>
             Créez votre compte gratuitement et accédez aux meilleures soirées du Maroc.
             Gagnez des FayasCoins à chaque achat.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register"
-              className="btn-neon px-8 py-4 text-base inline-flex items-center gap-2 justify-center">
+            <Link to="/register" className="btn-neon-v2 text-sm px-7 py-4 justify-center">
               <Icon name="sparkles" className="w-4 h-4" />
               Créer un compte gratuit
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </Link>
-            <Link to="/events"
-              className="border border-white/25 text-white font-semibold px-8 py-4 rounded-xl
-                         hover:bg-white/[0.08] hover:border-violet-400/40 transition-all hover:scale-105 duration-200
-                         inline-flex items-center gap-2 justify-center">
+            <Link to="/events" className="btn-glass-v2 text-sm px-7 py-4 justify-center">
               Explorer les événements
-              <Icon name="arrow_right" className="w-4 h-4" />
             </Link>
           </div>
         </div>

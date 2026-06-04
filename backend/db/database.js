@@ -120,6 +120,8 @@ async function initSchema() {
         tickets_sold   INTEGER DEFAULT 0,
         dress_code     TEXT,
         image_url      TEXT,
+        lat            FLOAT,
+        lng            FLOAT,
         status         TEXT DEFAULT 'published',
         organizer_id   TEXT REFERENCES users(id),
         created_at     TIMESTAMPTZ DEFAULT NOW(),
@@ -152,9 +154,11 @@ async function initSchema() {
       CREATE INDEX IF NOT EXISTS idx_users_email                ON users(email);
     `);
 
-    /* ── add updated_at to pre-existing tables gracefully ── */
+    /* ── migrations gracieuses ── */
     await client.query(`
       ALTER TABLE events   ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT NOW();
+      ALTER TABLE events   ADD COLUMN IF NOT EXISTS lat                FLOAT;
+      ALTER TABLE events   ADD COLUMN IF NOT EXISTS lng                FLOAT;
       ALTER TABLE users    ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT NOW();
       ALTER TABLE tickets  ADD COLUMN IF NOT EXISTS payment_intent_id  TEXT;
     `);
@@ -234,6 +238,32 @@ async function upsertUniversities() {
   console.log(`[DB] ${ALL_UNIVERSITIES.length} universités marocaines synchronisées.`);
 }
 
+/* ── Géolocalisation des événements ── */
+const CITY_COORDS = {
+  Casablanca: [33.5731, -7.5898], Marrakech:  [31.6295, -7.9811],
+  Rabat:      [34.0209, -6.8416], Agadir:     [30.4202, -9.5982],
+  'Fès':      [34.0181, -5.0078], Tanger:     [35.7595, -5.8340],
+  Essaouira:  [31.5085, -9.7595], 'Kénitra':  [34.2610, -6.5802],
+  'Meknès':   [33.8935, -5.5473], Oujda:      [34.6867, -1.9114],
+  'Tétouan':  [35.5785, -5.3684], Dakhla:     [23.7136, -15.9355],
+  Bouznika:   [33.7917, -7.1589], Ifrane:     [33.5228, -5.1097],
+  'El Jadida':[33.2316, -8.5007], 'Ben Guerir':[32.2352, -7.9560],
+};
+
+function geoHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) & 0x7fffffff;
+  return h;
+}
+function eventCoords(title, city) {
+  const base = CITY_COORDS[city] || [31.7917, -7.0926];
+  const h    = geoHash(title);
+  return [
+    +( base[0] + ((h & 0x3fff) / 0x3fff - 0.5) * 0.05 ).toFixed(6),
+    +( base[1] + (((h >> 14) & 0x3fff) / 0x3fff - 0.5) * 0.05 ).toFixed(6),
+  ];
+}
+
 async function seedDatabase() {
 
   await upsertUniversities();
@@ -255,16 +285,27 @@ async function seedDatabase() {
     VALUES ($1, $2, $3, $4, $5)
   `, [adminId, 'Admin Fayas', 'admin@billetterie.ma', await bcrypt.hash('Admin123!', 10), 'admin']);
 
-  /* ── Images par catégorie ── */
+  /* ── Images par catégorie / événement ── */
   const IMG = {
-    concert:    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
-    festival:   'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
-    soiree:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
-    gala:       'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
-    universite: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
-    rooftop:    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
-    gnawa:      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
-    beach:      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+    concert:      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+    festival:     'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
+    soiree:       'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+    gala:         'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
+    universite:   'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
+    rooftop:      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+    gnawa:        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+    beach:        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+    // Tidar.ma réels
+    moga_ess:     'https://tidar.ma/uploads/1778759182.png',
+    santablanca:  'https://tidar.ma/uploads/1779724667.png',
+    gate_bouznika:'https://tidar.ma/uploads/1779713184.png',
+    superjazzy:   'https://tidar.ma/uploads/1777980600.jpg',
+    alex_leone:   'https://tidar.ma/uploads/1776862960.png',
+    echo7000:     'https://tidar.ma/uploads/1777640840.png',
+    backtohouse:  'https://tidar.ma/uploads/1779480780.jpg',
+    xtravaganza:  'https://tidar.ma/uploads/1779733241.png',
+    velocity:     'https://tidar.ma/uploads/1779189249.png',
+    darna:        'https://tidar.ma/uploads/1778238231.png',
   };
 
   /*
@@ -595,28 +636,70 @@ async function seedDatabase() {
     ],
   ];
 
-  for (const e of events) {
+  /* ── Événements supplémentaires Tidar.ma + Fayas ── */
+  const tidarExtra = [
+    /* ── Tidar.ma réels ── */
+    ['SANTABLANCA — Fan Zone & Club','soiree',null,'Gaia Beach Casablanca','Casablanca','2026-06-13','16:00',200,450,800,312,"Fan zone géante Maroc vs Brésil : giant screen, DJ sets house jusqu'à 4h, food & drinks et ambiance beach sunset.",'Beach chic','santablanca'],
+    ['GATE TO BOUZNIKA','soiree',null,'Eden Island Beach Club','Bouznika','2026-06-21','17:00',150,300,600,195,"Sunset celebration face à l'Atlantique : Afro House, Latin House, ocean vibes. Headliner : OMED.",'Well dressed','gate_bouznika'],
+    ['SUPERJAZZY × MĀDERO — Marrakech','concert',null,'Villa Marco Au jardin des senteurs','Marrakech','2026-06-05','22:00',350,800,500,267,"22h de musique non-stop par Tania Vulcano et 12 artistes internationaux. Son Funktion-One, pool vibes.",'Festival chic','superjazzy'],
+    ['ALEX WANN @ LEONE — Marrakech','concert',null,'LEONE Marrakech','Marrakech','2026-05-29','22:00',250,600,400,180,"Alex Wann investit le LEONE pour une nuit électronique de prestige. Sets profonds, basses puissantes.",'Club chic','alex_leone'],
+    ['ECHO7000 × BURN ENERGY TOUR 2026','concert',null,'TBA Marrakech','Marrakech','2026-06-27','21:00',200,500,1000,0,"Le Burn Energy Tour fait escale à Marrakech avec ECHO7000. Énergie maximale et production scénique massive.",'Urban chic','echo7000'],
+    ['BACK TO HOUSE — Underground Vol. 02','concert',null,'Venue secrète — Marrakech','Marrakech','2026-07-18','22:00',180,420,600,240,"La série underground continue. Vol. 02 plonge dans les racines de la house, son Funktion-One, capacité limitée.",'All black','backtohouse'],
+    ['DARNA I — Roots of Detroit','concert',null,'Lieu à révéler — Marrakech','Marrakech','2026-06-13','22:00',220,500,400,160,"Darna célèbre les racines de la techno de Detroit. Nuit immersive, programmation pointue.",'All black','darna'],
+    ['MOGA ESSAOUIRA 2026','festival',null,"Hôtel Le Golf d'Essaouira & Spa",'Essaouira','2026-09-30','15:00',800,2000,2500,0,"Le festival boutique électronique d'Essaouira fête ses 10 ans. Lineup : Jamie Jones, The Martinez Brothers, Rhadoo.",'Come as you are','moga_ess'],
+    ['XTRAVAGANZA — Taghazout Bay','festival',null,'Radisson Blu Resort Taghazout Bay','Agadir','2026-06-05','20:00',400,900,1500,630,"Festival immersif : eau, terre, air, feu. Lineup : Andrea Oliva, Joris Delacroix, Joachim Pastor, Caiiro.",'Costume élémentaire','xtravaganza'],
+    ['VELOCITY FEST — Tanger','festival',null,'Bord de mer — Tanger','Tanger','2026-07-25','12:00',300,700,1500,520,"Revival de Made in Velocity avec un concept entièrement nouveau. Musique, activités et expériences au-delà de la piste.",'Come as you are','velocity'],
+    /* ── Nouvelles soirées Tidar.ma ── */
+    ['CHROME — Electronic Night Rabat','soiree',null,'Sofitel Rabat Jardin des Roses','Rabat','2026-07-04','23:00',180,400,500,215,"Chrome débarque à Rabat : techno minimale et ambient sombre. Son Funktion-One, capacité strictement limitée.",'All black / Chrome','rooftop'],
+    ['SOLSTICE — Midsummer Party Casa','soiree',null,'La Sqala Casablanca','Casablanca','2026-06-21','21:00',200,500,600,310,"La nuit la plus longue de l'année célébrée sur les remparts de La Sqala. DJs, artistes et fêtards pour une nuit inoubliable.",'Festival chic','soiree'],
+    ['JUNGLE TRIBE — Pool & Dance','soiree',null,'Kenzi Tower Hotel Casablanca','Casablanca','2026-07-12','18:00',220,500,400,178,"Pool party tropicale : décors jungle, afro-house et sets continus 18h-4h. Le rendez-vous estival de Casa.",'Tropical / Couleurs vives','rooftop'],
+    ['LUNA BLANCA — Soirée Tanger','soiree',null,'El Minzah Hotel Tanger','Tanger','2026-07-19','22:00',250,600,350,142,"Face au Détroit, Luna Blanca transforme la terrasse El Minzah en dancefloor. White dress code, deep house & chaâbi électronique.",'All white','soiree'],
+    ['UNDERGROUND SESSION 02 — Casa','concert',null,'Venue secrète — Casablanca','Casablanca','2026-07-25','23:00',150,350,300,188,"Le deuxième volet underground. Adresse révélée 24h avant. Lineup surprise, son impeccable, pas de téléphone sur la piste.",'All black','concert'],
+    ['SUNRISE — Dawn Party Agadir','festival',null,'Sofitel Agadir Thalassa Sea & Spa','Agadir','2026-08-08','04:00',180,400,600,95,"Dansez jusqu'au lever du soleil face à l'Atlantique. Beats organiques et brunch au soleil levant.",'Beach white','beach'],
+    ['DEEP SUNDAYS — Ain Diab Casa','soiree',null,'Cabaret Sauvage Casa Marina','Casablanca','2026-08-02','17:00',160,380,450,207,"Les dimanches deep house d'été. Les meilleurs sélecteurs du Maroc face à l'Atlantique.",'Smart casual','soiree'],
+    ['MYSTIC FES — Palais des Arts','soiree',null,'Palais Batha Fès','Fès','2026-08-14','21:30',300,700,400,124,"Électronique organique, musique andalouse et installations lumineuses dans les cours du Batha.",'Oriental chic','soiree'],
+    ['PARADISE POOL — Marrakech','soiree',null,'Fellah Hotel Marrakech','Marrakech','2026-08-01','17:00',250,600,500,263,"Le meilleur pool party de Marrakech : dancefloor flottant et DJ sets continus 17h-4h.",'Swimwear / Club chic','soiree'],
+    ['AFTER HOURS — Late Night Casa','concert',null,'NINE Casablanca','Casablanca','2026-08-22','01:00',120,280,250,180,"Quand la nuit devient profonde. Sets marathons jusqu'au petit matin, underground at its finest.",'All black','concert'],
+    ['NEON JUNGLE — Soirée Fluo Rabat','soiree',null,'Hôtel Golden Tulip Farah Rabat','Rabat','2026-07-31','22:00',140,320,400,156,"Corps illuminés et musique électronique colorée. Maquillage UV fourni à l'entrée.",'Neon / Fluo obligatoire','rooftop'],
+    ['OASIS — Desert Rave Agadir','festival',null,'Plage des Dunes — Sidi Kaouki','Agadir','2026-09-05','20:00',350,800,1200,0,"Rave en plein air entre dunes et Atlantique. Lineup international, scènes multiples, camping disponible.",'Festival look','beach'],
+    ['ELECTRIC MARRAKECH — Summer Edition','concert',null,'Nikki Beach Marrakech','Marrakech','2026-07-05','22:00',280,650,700,312,"Cinq DJs internationaux pour une nuit de techno mélodique et progressive house au Nikki Beach.",'Club chic','concert'],
+    ['CASA GROOVE — R&B & Afrobeats Night','soiree',null,'Mazagan Beach & Golf Resort','Casablanca','2026-06-28','21:00',200,480,600,278,"La meilleure playlist R&B et Afrobeats du Maroc dans un cadre de rêve. Burna Boy, Wizkid, Summer Walker.",'Smart casual','soiree'],
+    /* ── Galas & soirées premium supplémentaires ── */
+    ['PRESTIGE GALA × FAYAS — Royal Palm','gala',null,'Fairmont Royal Palm Casablanca','Casablanca','2026-09-05','19:30',900,2200,120,18,"Le gala le plus exclusif de la saison : dîner étoilé, DJ résidence internationale et cabaret de luxe.",'Black tie','gala'],
+    ['ROOFTOP SESSION × FAYAS — Marina','soiree',null,'Anfa Place Marina Casablanca','Casablanca','2026-06-21','20:30',180,450,350,127,"Sur les toits de la Marina, vue sur l'Atlantique et la Mosquée Hassan II.",'Smart chic','rooftop'],
+    ['GOLDEN HOUR × FAYAS — Atlas View','gala',null,'Palais Namaskar Marrakech','Marrakech','2026-10-10','18:00',800,2000,150,0,"Golden hour sur l'Atlas depuis les terrasses du Namaskar. Haute gastronomie et DJ set sunset.",'Cocktail chic','gala'],
+    ['MYSTIC NIGHT × FAYAS — Marrakech','soiree',null,'Café Bô Zin Marrakech','Marrakech','2026-07-31','21:30',200,500,400,156,"Jardins de Marrakech en scène mystique. Art de lumière et musique électronique orientale.",'Oriental chic','soiree'],
+    ['MIDNIGHT OASIS × FAYAS — Dakhla','soiree',null,'Dakhla Attitude Kite Camp','Dakhla','2026-08-15','21:00',300,700,200,42,"Soirée hors du commun face au lagon de Dakhla. Électronique, ciel étoilé et Atlantique à pied.",'Bohème chic','beach'],
+    ['SANDSTORM × FAYAS — Dakhla Festival','festival',null,'Plage Foum El Bour Dakhla','Dakhla','2026-09-12','18:00',250,600,1000,185,"Le premier festival électronique du Sahara atlantique. Fayas réunit les meilleures têtes d'affiche sur la langue de sable.",'Festival look','festival'],
+  ];
+
+  for (const e of [...events, ...tidarExtra]) {
     const [
       title, type, uniId, venue, city, date, time,
       stdPrice, vipPrice, capacity, ticketsSold,
       description, dressCode, imgKey,
     ] = e;
 
+    const [lat, lng] = eventCoords(title, city);
+
     await pool.query(`
       INSERT INTO events (
         id, title, description, type, university_id, venue, city, date, time,
-        price_standard, price_vip, capacity, tickets_sold, dress_code, image_url, status, organizer_id
+        price_standard, price_vip, capacity, tickets_sold, dress_code, image_url,
+        lat, lng, status, organizer_id
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'published',$16)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'published',$18)
+      ON CONFLICT DO NOTHING
     `, [
       uuidv4(), title, description, type, uniId || null, venue, city, date, time,
       stdPrice, vipPrice, capacity, ticketsSold, dressCode,
       IMG[imgKey] || IMG.soiree,
+      lat, lng,
       adminId,
     ]);
   }
 
-  console.log(`[DB] Seed: ${ALL_UNIVERSITIES.length} universités, ${events.length} événements Fayas, 1 admin`);
+  console.log(`[DB] Seed: ${ALL_UNIVERSITIES.length} universités, ${events.length + tidarExtra.length} événements, 1 admin`);
 }
 
 async function init() {

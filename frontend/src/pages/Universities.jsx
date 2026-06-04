@@ -4,7 +4,89 @@ import api from '../api/axios'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useAuth } from '../context/AuthContext'
+import AmbientScene3D from '../components/AmbientScene3D'
 
+/* ── Logo avec fallback couleur ── */
+function UniLogo({ u, size = 'sm' }) {
+  const [err, setErr] = useState(false)
+  const dim = size === 'sm' ? 'w-10 h-10' : 'w-14 h-14'
+  const txt = size === 'sm' ? 'text-[10px]' : 'text-xs'
+  if (u.logo_url && !err) {
+    return (
+      <img
+        src={u.logo_url}
+        alt={u.short_name}
+        loading="lazy"
+        onError={() => setErr(true)}
+        className={`${dim} object-contain rounded-xl p-1 bg-white dark:bg-[#1a1a24] border border-gray-100 dark:border-white/[0.08] flex-shrink-0`}
+      />
+    )
+  }
+  return (
+    <div className={`${dim} rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold ${txt}`}
+      style={{ background: `${u.color}22`, color: u.color, border: `1px solid ${u.color}44` }}>
+      {u.short_name.slice(0, 3)}
+    </div>
+  )
+}
+
+/* ── Ligne de tableau ── */
+function UniRow({ u, index }) {
+  return (
+    <Link
+      to={`/universities/${u.id}`}
+      className="group flex items-center gap-4 px-5 py-3.5
+                 border-b border-gray-100 dark:border-white/[0.04]
+                 hover:bg-purple-50/60 dark:hover:bg-white/[0.03]
+                 transition-colors duration-150"
+    >
+      {/* # */}
+      <span className="w-6 text-[11px] text-gray-300 dark:text-white/20 font-mono text-right flex-shrink-0">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+
+      {/* Logo */}
+      <UniLogo u={u} size="sm" />
+
+      {/* Sigle + nom */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-sm font-extrabold text-gray-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
+            {u.short_name}
+          </span>
+          {u.event_count > 0 && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(124,58,237,0.12)', color: 'var(--v2-vio-3)' }}>
+              <Icon name="sparkles" className="w-2.5 h-2.5" />
+              {u.event_count} soirée{u.event_count > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{u.name}</p>
+      </div>
+
+      {/* Ville */}
+      <div className="hidden sm:flex items-center gap-1.5 w-32 flex-shrink-0">
+        <Icon name="map" className="w-3 h-3 text-gray-400 dark:text-gray-600 flex-shrink-0" />
+        <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{u.city}</span>
+      </div>
+
+      {/* Étudiants */}
+      <div className="hidden md:block w-20 flex-shrink-0 text-right">
+        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+          {u.student_count >= 1000 ? `${(u.student_count / 1000).toFixed(0)}K` : u.student_count}
+        </span>
+        <p className="text-[10px] text-gray-400 dark:text-gray-600">étudiants</p>
+      </div>
+
+      {/* Arrow */}
+      <Icon name="arrow_right"
+        className="w-4 h-4 text-gray-300 dark:text-white/20 group-hover:text-purple-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+    </Link>
+  )
+}
+
+/* ── Carte grille ── */
 function UniCard({ u, index, visible, isAuthenticated }) {
   const [logoError, setLogoError] = useState(false)
   const navigate = useNavigate()
@@ -22,43 +104,25 @@ function UniCard({ u, index, visible, isAuthenticated }) {
                   ${visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-97'}`}
       style={{ transitionDelay: `${(index % 6) * 65}ms`, transitionDuration: '550ms' }}
     >
-      {/* Colored accent line at top */}
       <div className="absolute top-0 left-0 right-0 h-1 z-30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
         style={{ backgroundColor: u.color }} />
 
       <div className="relative h-44 overflow-hidden flex-shrink-0">
-        {/* Gradient background */}
         <div className="absolute inset-0 transition-opacity duration-500"
              style={{ background: `linear-gradient(135deg, ${u.color}22 0%, ${u.color}08 100%)` }} />
-
-        {/* Logo centered */}
         <div className="absolute inset-0 flex items-center justify-center p-6">
           {showLogo ? (
-            <img
-              src={u.logo_url}
-              alt={u.name}
-              loading="lazy"
+            <img src={u.logo_url} alt={u.name} loading="lazy"
               onError={() => setLogoError(true)}
-              className="max-w-full max-h-full object-contain
-                         group-hover:scale-105 transition-transform duration-500 ease-out
-                         drop-shadow-sm"
-            />
+              className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-sm" />
           ) : (
-            <div className="flex flex-col items-center gap-2 select-none">
-              <span className="text-5xl font-extrabold opacity-60 group-hover:opacity-80 transition-opacity"
-                    style={{ color: u.color }}>
-                {u.short_name}
-              </span>
-            </div>
+            <span className="text-5xl font-extrabold opacity-60 group-hover:opacity-80 transition-opacity select-none"
+              style={{ color: u.color }}>{u.short_name}</span>
           )}
         </div>
-
-        {/* Sheen diagonal sweep */}
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full
                         transition-transform duration-[1.2s] ease-out pointer-events-none
                         bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
-
-        {/* Top badges */}
         <div className="absolute top-3 left-3">
           <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border backdrop-blur-md"
                 style={{ backgroundColor: `${u.color}22`, color: u.color, borderColor: `${u.color}44` }}>
@@ -76,7 +140,7 @@ function UniCard({ u, index, visible, isAuthenticated }) {
         )}
         <div className="absolute bottom-3 left-3">
           <p className="text-xs font-medium inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-            <Icon name="location" className="w-3 h-3" />
+            <Icon name="map" className="w-3 h-3" />
             {u.city}
           </p>
         </div>
@@ -102,26 +166,19 @@ function UniCard({ u, index, visible, isAuthenticated }) {
             </div>
           </div>
           <span className="text-sm font-bold text-purple-600 dark:text-purple-400 group-hover:text-purple-800 dark:group-hover:text-purple-300 transition-all group-hover:translate-x-1 inline-flex items-center gap-1">
-            Voir
-            <Icon name="arrow_right" className="w-3.5 h-3.5" />
+            Voir <Icon name="arrow_right" className="w-3.5 h-3.5" />
           </span>
         </div>
-
-        {/* CTA : créer un événement — visible uniquement si authentifié */}
         {isAuthenticated && (
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(`/universities/${u.id}/submit`) }}
             className="mt-3 w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl
-                       text-xs font-bold
-                       bg-gradient-to-br from-gray-50 to-gray-100
-                       dark:from-[#1a1a24] dark:to-[#1a1a24]
-                       text-gray-700 dark:text-slate-300
+                       text-xs font-bold bg-gradient-to-br from-gray-50 to-gray-100
+                       dark:from-[#1a1a24] dark:to-[#1a1a24] text-gray-700 dark:text-slate-300
                        border border-gray-200 dark:border-white/[0.07]
                        hover:from-purple-600 hover:to-purple-700 hover:text-white hover:border-transparent
                        dark:hover:from-violet-700 dark:hover:to-violet-800 dark:hover:text-white dark:hover:border-transparent
-                       hover:shadow-lg hover:shadow-purple-500/30
-                       transition-all duration-250 ease-out"
-          >
+                       hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-250 ease-out">
             <Icon name="plus_circle" className="w-3.5 h-3.5" />
             Créer un événement
           </button>
@@ -131,9 +188,15 @@ function UniCard({ u, index, visible, isAuthenticated }) {
   )
 }
 
+/* ════════════════════════════════════
+   PAGE PRINCIPALE
+════════════════════════════════════ */
 export default function Universities() {
   const [universities, setUniversities] = useState([])
-  const [loading, setLoading]           = useState(true)
+  const [loading,      setLoading]      = useState(true)
+  const [view,         setView]         = useState('list') // 'list' | 'grid'
+  const [search,       setSearch]       = useState('')
+  const [cityFilter,   setCityFilter]   = useState('all')
   const [gridRef, gridVisible]          = useScrollReveal(0.02)
   const { isAuthenticated }             = useAuth()
 
@@ -141,63 +204,189 @@ export default function Universities() {
     api.get('/universities').then(r => setUniversities(r.data)).finally(() => setLoading(false))
   }, [])
 
+  const cities = ['all', ...Array.from(new Set(universities.map(u => u.city))).sort()]
+
+  const filtered = universities.filter(u => {
+    const q = search.toLowerCase()
+    const matchSearch = !q || u.name.toLowerCase().includes(q) || u.short_name.toLowerCase().includes(q) || u.city.toLowerCase().includes(q)
+    const matchCity = cityFilter === 'all' || u.city === cityFilter
+    return matchSearch && matchCity
+  })
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] transition-colors duration-300">
-      {/* ── Hero — Mesh Premium ── */}
-      <div className="relative bg-mesh-gradient py-20 text-white overflow-hidden">
-        {/* Noise grain */}
-        <div className="absolute inset-0 opacity-[0.035] pointer-events-none mix-blend-overlay"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'a\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23a)\'/%3E%3C/svg%3E")' }} />
+    <div className="min-h-screen" style={{ background: '#0a0a0d' }}>
 
-        <div className="absolute inset-0 opacity-10 text-[18rem] flex items-center justify-center select-none pointer-events-none leading-none">🎓</div>
-        {/* Floating blobs */}
-        <div className="absolute top-10 left-20 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-10 right-16 w-56 h-56 bg-purple-300/10 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-pink-400/10 rounded-full blur-2xl animate-float-fast" />
+      {/* ── Hero 3D ── */}
+      <div className="relative py-24 text-white overflow-hidden page-header-3d"
+        style={{ background: 'linear-gradient(180deg, #08001a 0%, #0d0020 50%, #0a0a0d 100%)' }}>
 
-        <div className="relative max-w-4xl mx-auto px-4 text-center animate-fade-up">
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text-sm font-semibold mb-6 shadow-lg shadow-purple-900/30">
-            <Icon name="graduation" className="w-4 h-4" />
-            Soirées Universitaires Maroc
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight tracking-tight">
-            Chaque université,<br />
-            <span className="bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-400 bg-clip-text text-transparent bg-gradient-sweep">ses propres soirées</span>
+        {/* Ambient 3D — academic / violet / gold */}
+        <AmbientScene3D
+          colors={['#7c3aed', '#4f46e5', '#f59e0b', '#3b82f6', '#059669']}
+          count={18}
+          seed={99}
+          style={{ zIndex: 0 }}
+        />
+
+        {/* Barre colorée top */}
+        <div className="absolute top-0 left-0 right-0 h-0.5"
+             style={{ background: 'linear-gradient(90deg, #7c3aed, #4f46e5, #3b82f6, #059669)', zIndex: 2 }} />
+
+        {/* Grille déco */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          zIndex: 1,
+          backgroundImage: 'linear-gradient(rgba(124,58,237,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.05) 1px, transparent 1px)',
+          backgroundSize: '72px 72px',
+        }} />
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center" style={{ zIndex: 2 }}>
+          <span className="kicker-v2 mb-5">Campus</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 mt-4 leading-tight"
+            style={{ letterSpacing: '-0.04em', color: 'var(--v2-tx1)', textShadow: '0 0 50px rgba(124,58,237,0.45)' }}>
+            Universités du{' '}
+            <em className="not-italic" style={{ color: 'var(--v2-vio-3)' }}>Maroc</em>
           </h1>
-          <p className="text-white/75 text-lg max-w-2xl mx-auto leading-relaxed">
-            Étudiants, retrouvez les galas, soirées de fin d'année et événements exclusifs
-            organisés par et pour votre université. Vivez chaque moment avec votre promo.
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '17px' }}>
+            {universities.length} établissements · Galas, soirées de fin d'année, événements exclusifs
           </p>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-        {/* ── Loading skeletons ── */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="sk-card fade-slide-up" style={{ animationDelay: `${i * 60}ms` }}>
-                <div className="sk-card-img" style={{ height: '11rem' }} />
-                <div className="sk-card-body">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="skeleton rounded-full" style={{ width: '0.75rem', height: '2.5rem' }} />
-                    <div className="sk-title" style={{ width: '70%' }} />
-                  </div>
-                  <div className="sk-text" />
-                  <div className="sk-text" style={{ width: '80%' }} />
-                  <div className="skeleton h-px w-full mt-1" />
-                  <div className="flex justify-between pt-1">
-                    <div className="sk-text" style={{ width: '30%' }} />
-                    <div className="sk-text" style={{ width: '25%' }} />
-                  </div>
-                </div>
+          {/* Stats pills */}
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            {[
+              { label: 'Établissements', val: universities.length || 55 },
+              { label: 'Villes', val: cities.length > 1 ? cities.length - 1 : 14 },
+              { label: 'Étudiants', val: '1M+' },
+            ].map(s => (
+              <div key={s.label}
+                className="flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold"
+                style={{ background: 'rgba(124,58,237,0.12)', borderColor: 'rgba(124,58,237,0.35)', color: '#c4b5fd' }}>
+                <span className="font-extrabold text-white">{s.val}</span>
+                <span style={{ color: 'rgba(255,255,255,0.45)' }}>{s.label}</span>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {/* ── Barre de contrôle ── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+
+          {/* Recherche */}
+          <div className="relative flex-1 max-w-sm">
+            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--v2-tx3)' }} />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Rechercher une université…"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium outline-none transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.10)',
+                color: 'var(--v2-tx1)',
+              }}
+            />
+          </div>
+
+          {/* Filtre ville */}
+          <select
+            value={cityFilter}
+            onChange={e => setCityFilter(e.target.value)}
+            className="py-2.5 px-3 rounded-xl text-sm font-medium outline-none transition-all cursor-pointer"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              color: 'var(--v2-tx1)',
+            }}
+          >
+            <option value="all" style={{ background: '#13131a' }}>Toutes les villes</option>
+            {cities.filter(c => c !== 'all').map(c => (
+              <option key={c} value={c} style={{ background: '#13131a' }}>{c}</option>
+            ))}
+          </select>
+
+          {/* Compteur résultats */}
+          <span className="text-sm ml-auto" style={{ color: 'var(--v2-tx3)' }}>
+            {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          </span>
+
+          {/* Toggle vue */}
+          <div className="flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
+            <button
+              onClick={() => setView('list')}
+              className="px-3 py-2 transition-all"
+              style={view === 'list'
+                ? { background: 'rgba(124,58,237,0.25)', color: 'var(--v2-vio-3)' }
+                : { background: 'transparent', color: 'var(--v2-tx3)' }}
+              title="Vue liste"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setView('grid')}
+              className="px-3 py-2 transition-all"
+              style={view === 'grid'
+                ? { background: 'rgba(124,58,237,0.25)', color: 'var(--v2-vio-3)' }
+                : { background: 'transparent', color: 'var(--v2-tx3)' }}
+              title="Vue grille"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Loading ── */}
+        {loading ? (
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-white/[0.04]">
+                <div className="w-6 h-3 rounded bg-white/[0.05] animate-pulse" />
+                <div className="w-10 h-10 rounded-xl bg-white/[0.05] animate-pulse flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="h-3.5 w-32 rounded bg-white/[0.05] animate-pulse mb-1.5" />
+                  <div className="h-2.5 w-48 rounded bg-white/[0.05] animate-pulse" />
+                </div>
+                <div className="hidden sm:block h-3 w-20 rounded bg-white/[0.05] animate-pulse" />
+                <div className="hidden md:block h-3 w-12 rounded bg-white/[0.05] animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <Icon name="graduation" className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--v2-tx3)' }} />
+            <p style={{ color: 'var(--v2-tx2)' }}>Aucune université trouvée pour cette recherche.</p>
+          </div>
+        ) : view === 'list' ? (
+          /* ══ VUE LISTE / TABLEAU ══ */
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+            {/* En-tête tableau */}
+            <div className="flex items-center gap-4 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: 'var(--v2-tx3)', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)' }}>
+              <span className="w-6 text-right flex-shrink-0">#</span>
+              <span className="w-10 flex-shrink-0" />
+              <span className="flex-1">Établissement</span>
+              <span className="hidden sm:block w-32 flex-shrink-0">Ville</span>
+              <span className="hidden md:block w-20 flex-shrink-0 text-right">Effectif</span>
+              <span className="w-4 flex-shrink-0" />
+            </div>
+            {/* Lignes */}
+            {filtered.map((u, i) => (
+              <UniRow key={u.id} u={u} index={i} />
+            ))}
+          </div>
         ) : (
+          /* ══ VUE GRILLE ══ */
           <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {universities.map((u, i) => (
+            {filtered.map((u, i) => (
               <UniCard key={u.id} u={u} index={i} visible={gridVisible} isAuthenticated={isAuthenticated} />
             ))}
           </div>

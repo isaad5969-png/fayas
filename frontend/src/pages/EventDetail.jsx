@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { Icon } from '../components/Icons'
 import FavoriteButton from '../components/FavoriteButton'
 import ShareButton from '../components/ShareButton'
+import SmartEventCompanion from '../components/SmartEventCompanion'
+import AmbientScene3D from '../components/AmbientScene3D'
 import toast from 'react-hot-toast'
 
 const TYPE_GRADIENT = {
@@ -14,7 +16,15 @@ const TYPE_GRADIENT = {
   concert:   'from-rose-600 to-pink-800',
   autre:     'from-gray-600 to-gray-900',
 }
-const TYPE_EMOJI = { gala: '✨', soiree: '🌙', universite: '🎓', concert: '🎵', autre: '🎉' }
+const TYPE_EMOJI   = { gala: '✨', soiree: '🌙', universite: '🎓', concert: '🎵', autre: '🎉' }
+const TYPE_COLORS  = {
+  gala:      ['#f59e0b', '#7c3aed', '#fbbf24'],
+  soiree:    ['#7c3aed', '#ec4899', '#22d3ee'],
+  concert:   ['#be123c', '#7c3aed', '#fb7185'],
+  universite:['#1e40af', '#3b82f6', '#60a5fa'],
+  festival:  ['#059669', '#10b981', '#34d399'],
+  autre:     ['#475569', '#7c3aed', '#94a3b8'],
+}
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('fr-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -59,36 +69,56 @@ export default function EventDetail() {
     ? `background: linear-gradient(135deg, ${event.university_color}dd, ${event.university_color}55)`
     : undefined
   const gradientClass = !event.university_color ? TYPE_GRADIENT[event.type] || TYPE_GRADIENT.autre : ''
+  const ambientColors = (event.university_color
+    ? [event.university_color, '#7c3aed', '#22d3ee']
+    : TYPE_COLORS[event.type] || TYPE_COLORS.autre)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] transition-colors duration-300">
-      {/* ── Hero ── */}
-      <div className="relative min-h-[420px] flex items-end overflow-hidden text-white">
+      {/* ══ HERO 3D ══ */}
+      <div className="relative min-h-[520px] flex items-end overflow-hidden text-white detail-hero">
 
-        {/* Background: real photo OR gradient */}
+        {/* ── Fond : photo réelle OU gradient ── */}
         {event.image_url ? (
           <img
             src={event.image_url}
             alt={event.title}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-            style={{ filter: 'brightness(0.75)' }}
+            className="absolute inset-0 w-full h-full object-cover object-center detail-hero-img"
+            style={{ filter: 'brightness(0.62)' }}
           />
         ) : (
           <div
             className={`absolute inset-0 ${!gradient ? `bg-gradient-to-br ${gradientClass}` : ''}`}
             style={gradient ? { backgroundImage: `linear-gradient(135deg, ${event.university_color}cc, ${event.university_color}77)` } : {}}
-          >
-            <div className="absolute inset-0 flex items-center justify-center text-[22rem] opacity-10 select-none pointer-events-none">
-              {TYPE_EMOJI[event.type] || '🎉'}
-            </div>
-          </div>
+          />
         )}
 
-        {/* Gradient scrim — makes text readable over any photo */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        {/* ── AmbientScene3D derrière ── */}
+        <AmbientScene3D
+          colors={ambientColors}
+          count={12}
+          seed={event.id?.charCodeAt(0) || 42}
+          mouseParallax={true}
+          style={{ zIndex: 1 }}
+        />
 
-        {/* Content */}
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-24 animate-fade-up">
+        {/* ── Particules montantes (CSS) ── */}
+        <div className="absolute inset-0 detail-particles" style={{ zIndex: 2 }} aria-hidden="true" />
+
+        {/* ── Scrim gradient ── */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10" style={{ zIndex: 3 }} />
+
+        {/* ── Barre colorée en bas ── */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1"
+          style={{
+            background: `linear-gradient(90deg, ${ambientColors[0]}, ${ambientColors[1]}, ${ambientColors[2]})`,
+            zIndex: 4,
+          }}
+        />
+
+        {/* ── Contenu ── */}
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-28 detail-hero-content" style={{ zIndex: 5 }}>
           <div className="flex items-center justify-between gap-3 mb-6">
             <Link to="/events" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
               ← Retour aux événements
@@ -159,6 +189,13 @@ export default function EventDetail() {
               ))}
             </div>
           </div>
+
+          <SmartEventCompanion
+            event={event}
+            ticketType={ticketType}
+            quantity={quantity}
+            unitPrice={unitPrice}
+          />
 
           {/* University info */}
           {event.university_name && (

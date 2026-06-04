@@ -1,5 +1,30 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+
+// City landmark photos — Wikipedia Commons verified URLs for Moroccan cities
+const CITY_BANNERS = {
+  'Casablanca':  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Hassan_II_mosque_at_twilight%2C_Casablanca%2C_Morocco.jpg/1280px-Hassan_II_mosque_at_twilight%2C_Casablanca%2C_Morocco.jpg',
+  'Rabat':       'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Tour_Hassan_Rabat.JPG/1280px-Tour_Hassan_Rabat.JPG',
+  'Marrakech':   'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Koutoubia-Mosquee-Marrakech.jpg/1280px-Koutoubia-Mosquee-Marrakech.jpg',
+  'Fès':         'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Fes_bou_inania.jpg/1280px-Fes_bou_inania.jpg',
+  'Agadir':      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Agadir_bay.jpg/1280px-Agadir_bay.jpg',
+  'Tanger':      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Tangier%2C_Morocco_%28Tanger%29_%282%29.jpg/1280px-Tangier%2C_Morocco_%28Tanger%29_%282%29.jpg',
+  'Meknès':      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bab_Mansour_Meknes.jpg/1280px-Bab_Mansour_Meknes.jpg',
+  'Oujda':       'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Oujda_avenue_Mohammed_V.jpg/1280px-Oujda_avenue_Mohammed_V.jpg',
+  'Kénitra':     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Kenitra_from_above.jpg/1280px-Kenitra_from_above.jpg',
+  'Tétouan':     'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Tetouan_Panorama.jpg/1280px-Tetouan_Panorama.jpg',
+  'Settat':      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Settat_panorama.jpg/1280px-Settat_panorama.jpg',
+  'El Jadida':   'https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/El_jadida.jpg/1280px-El_jadida.jpg',
+  'Béni Mellal': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Beni_Mellal_panorama.jpg/1280px-Beni_Mellal_panorama.jpg',
+  'Ben Guerir':  'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/UM6P_campus_aerial.jpg/1280px-UM6P_campus_aerial.jpg',
+  'Ifrane':      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Al_Akhawayn_University_Ifrane.jpg/1280px-Al_Akhawayn_University_Ifrane.jpg',
+  'Essaouira':   'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Essaouira-1.jpg/1280px-Essaouira-1.jpg',
+}
+
+// Fallback: consistent city-seeded photo (picsum) per city when Wikimedia fails
+function cityFallbackPhoto(city) {
+  return `https://picsum.photos/seed/${encodeURIComponent(city || 'maroc')}-campus/1600/500`
+}
 import api from '../api/axios'
 import EventCard from '../components/EventCard'
 import { useScrollReveal } from '../hooks/useScrollReveal'
@@ -259,11 +284,44 @@ export default function UniversityEvents() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* Hero */}
-      <div className="relative py-16 text-white overflow-hidden" style={{ backgroundColor: uniColor }}>
-        <div className="absolute inset-0 opacity-[0.07] text-[20rem] flex items-center justify-center select-none pointer-events-none leading-none">🎓</div>
-        {/* blobs */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full translate-y-1/3 -translate-x-1/4" />
+      <div className="relative py-20 text-white overflow-hidden" style={{ minHeight: 240 }}>
+        {/* Background photo — city landmark (Wikimedia) with picsum fallback */}
+        <img
+          src={CITY_BANNERS[university?.city] || cityFallbackPhoto(university?.city)}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'saturate(0.3) brightness(0.5)' }}
+          onError={e => {
+            // If Wikimedia fails, try picsum city fallback
+            if (!e.currentTarget.dataset.fallback) {
+              e.currentTarget.dataset.fallback = '1'
+              e.currentTarget.src = cityFallbackPhoto(university?.city)
+            } else {
+              e.currentTarget.style.display = 'none'
+            }
+          }}
+        />
+        {/* University color overlay */}
+        <div className="absolute inset-0" style={{ background: `${uniColor}c0` }} />
+        {/* Gradient scrim — darkens bottom for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        {/* Subtle dot grid pattern */}
+        <div className="absolute inset-0 opacity-[0.08]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.9) 1px, transparent 0)',
+          backgroundSize: '28px 28px'
+        }} />
+        {/* Large blurred logo watermark on the right */}
+        {university?.logo_url && (
+          <div className="absolute right-16 top-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none select-none hidden md:block"
+            style={{ opacity: 0.07, filter: 'blur(1px) invert(1) brightness(10)' }}>
+            <img src={university.logo_url} alt="" className="w-full h-full object-contain" />
+          </div>
+        )}
+        {/* Blobs */}
+        <div className="absolute top-0 right-0 w-72 h-72 rounded-full -translate-y-1/2 translate-x-1/3"
+          style={{ background: `${uniColor}40`, filter: 'blur(40px)' }} />
+        <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full translate-y-1/3 -translate-x-1/4"
+          style={{ background: 'rgba(0,0,0,0.3)', filter: 'blur(30px)' }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-up">
           <Link to="/universities"
