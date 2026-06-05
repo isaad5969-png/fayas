@@ -372,12 +372,15 @@ export default function NightlifeIntro3D({ events = [], active = true }) {
     ro.observe(mount)
     resize()
 
-    /* ── Animation loop ── */
+    /* ── Animation loop (30fps cap, paused when tab hidden) ── */
     const clock = new THREE.Clock()
-    let frameId
+    let frameId = null, last = 0
+    let tabVisible = !document.hidden
 
-    const animate = () => {
+    const animate = (now) => {
       frameId = requestAnimationFrame(animate)
+      if (now - last < 1000 / 30) return
+      last = now
       const t = clock.getElapsedTime()
 
       /* rotation douce du groupe */
@@ -409,10 +412,23 @@ export default function NightlifeIntro3D({ events = [], active = true }) {
 
       renderer.render(scene, camera)
     }
-    frameId = requestAnimationFrame(animate)
+
+    const start = () => {
+      if (frameId == null && tabVisible) { last = 0; frameId = requestAnimationFrame(animate) }
+    }
+    const stop = () => {
+      if (frameId != null) { cancelAnimationFrame(frameId); frameId = null }
+    }
+    const onVisibility = () => {
+      tabVisible = !document.hidden
+      tabVisible ? start() : stop()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    start()
 
     return () => {
-      cancelAnimationFrame(frameId)
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
       ro.disconnect()
       window.removeEventListener('pointermove', onMouse)
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement)

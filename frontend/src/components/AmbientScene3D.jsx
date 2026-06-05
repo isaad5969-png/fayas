@@ -136,15 +136,12 @@ export default function AmbientScene3D({
     ro.observe(mount)
     resize()
 
-    /* ── Loop (30fps cap for perf) ── */
+    /* ── Loop (30fps cap, paused off-screen / hidden tab) ── */
     const clock = new THREE.Clock()
-    let frameId, last = 0
+    let frameId = null, last = 0
+    let onScreen = true, tabVisible = !document.hidden
 
-    const animate = (now) => {
-      frameId = requestAnimationFrame(animate)
-      if (now - last < 1000 / 30) return
-      last = now
-
+    const renderOnce = () => {
       const t = clock.getElapsedTime()
 
       meshes.forEach(m => {
@@ -166,10 +163,48 @@ export default function AmbientScene3D({
 
       renderer.render(scene, camera)
     }
-    frameId = requestAnimationFrame(animate)
+
+    const animate = (now) => {
+      frameId = requestAnimationFrame(animate)
+      if (now - last < 1000 / 30) return
+      last = now
+      renderOnce()
+    }
+
+    const start = () => {
+      if (frameId == null && onScreen && tabVisible) {
+        last = 0
+        frameId = requestAnimationFrame(animate)
+      }
+    }
+    const stop = () => {
+      if (frameId != null) { cancelAnimationFrame(frameId); frameId = null }
+    }
+
+    /* Respect reduced-motion: render a single static frame, no loop */
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+    /* Pause when scrolled off-screen */
+    const io = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+      onScreen && !reduceMotion ? start() : stop()
+    })
+    io.observe(mount)
+
+    /* Pause when tab is hidden */
+    const onVisibility = () => {
+      tabVisible = !document.hidden
+      tabVisible && !reduceMotion ? start() : stop()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    if (reduceMotion) renderOnce()
+    else start()
 
     return () => {
-      cancelAnimationFrame(frameId)
+      stop()
+      io.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
       ro.disconnect()
       if (mouseParallax) window.removeEventListener('pointermove', onMouse)
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement)

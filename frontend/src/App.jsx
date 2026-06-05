@@ -35,9 +35,18 @@ export default function App() {
 
   useEffect(() => {
     const lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
-    const raf = (time) => { lenis.raf(time); requestAnimationFrame(raf) }
-    requestAnimationFrame(raf)
-    return () => lenis.destroy()
+    let frameId = null
+    const raf = (time) => { lenis.raf(time); frameId = requestAnimationFrame(raf) }
+    const start = () => { if (frameId == null) frameId = requestAnimationFrame(raf) }
+    const stop  = () => { if (frameId != null) { cancelAnimationFrame(frameId); frameId = null } }
+    const onVisibility = () => (document.hidden ? stop() : start())
+    document.addEventListener('visibilitychange', onVisibility)
+    start()
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
+      lenis.destroy()
+    }
   }, [])
 
   // Scroll to top on route change
