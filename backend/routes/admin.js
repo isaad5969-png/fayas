@@ -16,9 +16,9 @@ router.get('/stats', asyncHandler(async (_req, res) => {
     ticketsSold,
     eventsByType,
     eventsByCity,
-    revenueByMonth,
+    revenueRows,
     recentTickets,
-    topEvents,
+    topEventsRaw,
   ] = await Promise.all([
     db.one("SELECT COUNT(*)::int AS c FROM events WHERE status = 'published'"),
     db.one("SELECT COUNT(*)::int AS c FROM users  WHERE role = 'user'"),
@@ -36,11 +36,8 @@ router.get('/stats', asyncHandler(async (_req, res) => {
       GROUP BY city ORDER BY count DESC LIMIT 8
     `),
     db.many(`
-      SELECT TO_CHAR(purchased_at, 'YYYY-MM') AS month,
-             ROUND(SUM(total_price), 0)::float AS revenue,
-             COUNT(*)::int AS ticket_count
+      SELECT purchased_at, total_price
       FROM tickets WHERE status = 'confirmed'
-      GROUP BY month ORDER BY month DESC LIMIT 12
     `),
     db.many(`
       SELECT t.id, t.ticket_type, t.quantity, t.total_price, t.purchased_at,
@@ -52,13 +49,34 @@ router.get('/stats', asyncHandler(async (_req, res) => {
       ORDER BY t.purchased_at DESC LIMIT 10
     `),
     db.many(`
-      SELECT id, title, city, type, tickets_sold, capacity, price_standard,
-             ROUND((tickets_sold::numeric / NULLIF(capacity, 0)) * 100, 1)::float AS fill_rate
+      SELECT id, title, city, type, tickets_sold, capacity, price_standard
       FROM events
       WHERE status = 'published' AND capacity > 0
-      ORDER BY fill_rate DESC, tickets_sold DESC LIMIT 6
     `),
   ]);
+
+  /* ── Compute fill rate + rank top events in JS (portable across engines) ── */
+  const topEvents = topEventsRaw
+    .map(e => ({
+      ...e,
+      fill_rate: Math.round((Number(e.tickets_sold) / Number(e.capacity)) * 1000) / 10,
+    }))
+    .sort((a, b) => b.fill_rate - a.fill_rate || b.tickets_sold - a.tickets_sold)
+    .slice(0, 6);
+
+  /* ── Aggregate revenue by month in JS (portable across pg-mem & PostgreSQL) ── */
+  const monthMap = new Map();
+  for (const row of revenueRows) {
+    const month = new Date(row.purchased_at).toISOString().slice(0, 7); // YYYY-MM
+    const acc = monthMap.get(month) || { month, revenue: 0, ticket_count: 0 };
+    acc.revenue      += Number(row.total_price) || 0;
+    acc.ticket_count += 1;
+    monthMap.set(month, acc);
+  }
+  const revenueByMonth = [...monthMap.values()]
+    .map(m => ({ ...m, revenue: Math.round(m.revenue) }))
+    .sort((a, b) => b.month.localeCompare(a.month))
+    .slice(0, 12);
 
   res.json({
     totalEvents:    totalEvents.c,
@@ -115,22 +133,25 @@ router.get('/tickets', asyncHandler(async (req, res) => {
     ? `WHERE t.status = '${status}'`
     : '';
 
-  const rows = await db.many(`
+  const countRow = await db.one(`
+    SELECT COUNT(*)::int AS total_count
+    FROM tickets t
+    ${where}
+  `);
+  const total = countRow?.total_count || 0;
+
+  const data = await db.many(`
     SELECT t.id, t.ticket_type, t.quantity, t.unit_price, t.total_price,
            t.status, t.purchased_at,
            e.title AS event_title, e.date, e.city,
-           u.name  AS user_name,   u.email AS user_email,
-           COUNT(*) OVER() AS total_count
+           u.name  AS user_name,   u.email AS user_email
     FROM tickets t
     JOIN events e ON t.event_id = e.id
     JOIN users  u ON t.user_id  = u.id
     ${where}
     ORDER BY t.purchased_at DESC
-    LIMIT $1 OFFSET $2
-  `, [limit, offset]);
-
-  const total = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0;
-  const data  = rows.map(({ total_count, ...r }) => r);
+    LIMIT ${limit} OFFSET ${offset}
+  `);
 
   res.json({ data, meta: { total, page, limit, pages: Math.ceil(total / limit) } });
 }));

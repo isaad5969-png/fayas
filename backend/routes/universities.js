@@ -6,10 +6,14 @@ const router = express.Router();
 
 router.get('/', asyncHandler(async (_req, res) => {
   const universities = await db.many(`
-    SELECT u.*, COUNT(e.id)::int as event_count
+    SELECT u.*, COALESCE(c.event_count, 0) AS event_count
     FROM universities u
-    LEFT JOIN events e ON e.university_id = u.id AND e.status = 'published'
-    GROUP BY u.id
+    LEFT JOIN (
+      SELECT university_id, COUNT(*)::int AS event_count
+      FROM events
+      WHERE status = 'published'
+      GROUP BY university_id
+    ) c ON c.university_id = u.id
     ORDER BY u.name ASC
   `);
   res.json(universities);

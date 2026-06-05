@@ -120,22 +120,24 @@ router.get('/my', authenticate, asyncHandler(async (req, res) => {
   const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
   const offset = (page - 1) * limit;
 
-  const rows = await db.many(`
+  const countRow = await db.one(
+    'SELECT COUNT(*)::int AS total_count FROM tickets WHERE user_id = $1',
+    [req.user.id],
+  );
+  const total = countRow?.total_count || 0;
+
+  const data = await db.many(`
     SELECT t.*,
            e.title AS event_title, e.date, e.time, e.venue, e.city,
            e.type  AS event_type, e.dress_code,
-           u.name  AS university_name, u.color AS university_color,
-           COUNT(*) OVER() AS total_count
+           u.name  AS university_name, u.color AS university_color
     FROM tickets t
     JOIN events e ON t.event_id = e.id
     LEFT JOIN universities u ON e.university_id = u.id
     WHERE t.user_id = $1
     ORDER BY t.purchased_at DESC
-    LIMIT $2 OFFSET $3
-  `, [req.user.id, limit, offset]);
-
-  const total = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0;
-  const data  = rows.map(({ total_count, ...r }) => r);
+    LIMIT ${limit} OFFSET ${offset}
+  `, [req.user.id]);
 
   res.json({ data, meta: { total, page, limit, pages: Math.ceil(total / limit) } });
 }));

@@ -69,23 +69,25 @@ router.get('/', asyncHandler(async (req, res) => {
 
   const whereSql = where.join(' AND ');
 
-  /* Single query using window function — no separate COUNT round-trip */
-  const rows = await db.many(`
+  const countRow = await db.one(`
+    SELECT COUNT(*) AS total_count
+    FROM events e
+    WHERE ${whereSql}
+  `, params);
+  const total = parseInt(countRow?.total_count, 10) || 0;
+
+  const data = await db.many(`
     SELECT e.*,
            u.name        AS university_name,
            u.short_name  AS university_short_name,
-           u.color       AS university_color,
-           COUNT(*) OVER() AS total_count
+           u.color       AS university_color
     FROM events e
     LEFT JOIN universities u ON e.university_id = u.id
     WHERE ${whereSql}
     ORDER BY e.date ASC, e.created_at ASC
-    LIMIT  ${addParam(params, limit)}
-    OFFSET ${addParam(params, offset)}
+    LIMIT  ${limit}
+    OFFSET ${offset}
   `, params);
-
-  const total = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0;
-  const data  = rows.map(({ total_count, ...r }) => r);
 
   res.json({
     data,
