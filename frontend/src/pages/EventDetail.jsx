@@ -6,7 +6,7 @@ import { Icon } from '../components/Icons'
 import FavoriteButton from '../components/FavoriteButton'
 import ShareButton from '../components/ShareButton'
 import SmartEventCompanion from '../components/SmartEventCompanion'
-import AmbientScene3D from '../components/AmbientScene3D'
+import AmbientScene3D from '../components/LazyAmbientScene3D'
 import toast from 'react-hot-toast'
 
 const TYPE_GRADIENT = {

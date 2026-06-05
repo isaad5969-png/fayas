@@ -4,7 +4,7 @@ import api from '../api/axios'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useAuth } from '../context/AuthContext'
-import AmbientScene3D from '../components/AmbientScene3D'
+import AmbientScene3D from '../components/LazyAmbientScene3D'
 
 /* ── Logo avec fallback couleur ── */
 function UniLogo({ u, size = 'sm' }) {

@@ -6,7 +6,7 @@ import { Icon } from '../components/Icons'
 import { CITY_GRAPHICS } from '../components/CityGraphic'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useCountUp } from '../hooks/useCountUp'
-import NightlifeIntro3D from '../components/NightlifeIntro3D'
+import NightlifeIntro3D from '../components/LazyNightlifeIntro3D'
 import toast from 'react-hot-toast'
 
 /* ── Animated stat item ── */

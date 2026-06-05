@@ -5,7 +5,7 @@ import EventCard from '../components/EventCard'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import SmartConcierge from '../components/SmartConcierge'
-import AmbientScene3D from '../components/AmbientScene3D'
+import AmbientScene3D from '../components/LazyAmbientScene3D'
 
 const EventMap = lazy(() => import('../components/EventMap'))
 
