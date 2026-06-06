@@ -25,6 +25,26 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json(university);
 }));
 
+/* ── POST /universities/:id/vote ── soutien public (sans authentification) */
+router.post('/:id/vote', asyncHandler(async (req, res) => {
+  const row = await db.one(
+    `UPDATE universities SET votes = COALESCE(votes, 0) + 1 WHERE id = $1 RETURNING votes`,
+    [req.params.id],
+  );
+  if (!row) return res.status(404).json({ error: 'Université non trouvée' });
+  res.json({ votes: row.votes });
+}));
+
+/* ── DELETE /universities/:id/vote ── retrait du soutien */
+router.delete('/:id/vote', asyncHandler(async (req, res) => {
+  const row = await db.one(
+    `UPDATE universities SET votes = GREATEST(0, COALESCE(votes, 0) - 1) WHERE id = $1 RETURNING votes`,
+    [req.params.id],
+  );
+  if (!row) return res.status(404).json({ error: 'Université non trouvée' });
+  res.json({ votes: row.votes });
+}));
+
 router.get('/:id/events', asyncHandler(async (req, res) => {
   const university = await db.one('SELECT * FROM universities WHERE id = $1', [req.params.id]);
   if (!university) return res.status(404).json({ error: 'Université non trouvée' });

@@ -89,7 +89,8 @@ async function initSchema() {
         student_count INTEGER DEFAULT 0,
         description TEXT,
         image_url   TEXT,
-        logo_url    TEXT
+        logo_url    TEXT,
+        votes       INTEGER DEFAULT 0
       );
 
       CREATE TABLE IF NOT EXISTS users (
@@ -163,6 +164,7 @@ async function initSchema() {
       ALTER TABLE users        ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT NOW();
       ALTER TABLE tickets      ADD COLUMN IF NOT EXISTS payment_intent_id  TEXT;
       ALTER TABLE universities ADD COLUMN IF NOT EXISTS logo_url           TEXT;
+      ALTER TABLE universities ADD COLUMN IF NOT EXISTS votes              INTEGER DEFAULT 0;
     `);
 
     /* ── ensure unique constraint on short_name (migration safety) ── */
@@ -218,9 +220,11 @@ const ALL_UNIVERSITIES = [
 
 async function upsertUniversities() {
   for (const [shortName, name, city, color, studentCount, logoUrl] of ALL_UNIVERSITIES) {
+    /* Vote de départ stable (préservé sur les votes réels accumulés en prod) */
+    const seededVotes = 80 + (geoHash(shortName) % 420);
     await pool.query(`
-      INSERT INTO universities (id, name, short_name, city, color, student_count, description, logo_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO universities (id, name, short_name, city, color, student_count, description, logo_url, votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       ON CONFLICT (short_name) DO UPDATE SET
         name          = EXCLUDED.name,
         city          = EXCLUDED.city,
@@ -237,6 +241,7 @@ async function upsertUniversities() {
       studentCount,
       `${name} — établissement d'enseignement supérieur à ${city}.`,
       logoUrl || null,
+      seededVotes,
     ]);
   }
   console.log(`[DB] ${ALL_UNIVERSITIES.length} universités marocaines synchronisées.`);

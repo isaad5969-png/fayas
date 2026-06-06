@@ -1,10 +1,115 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useAuth } from '../context/AuthContext'
 import AmbientScene3D from '../components/LazyAmbientScene3D'
+import toast from 'react-hot-toast'
+
+/* ════════════════════════════════════
+   BATTLE DES CAMPUS — score d'engagement
+════════════════════════════════════ */
+const VOTES_KEY = 'fayas_campus_votes'
+
+/* Score transparent : soutiens (×6) + soirées (×12) + milliers d'étudiants (×2) */
+export function campusScore(u) {
+  return (u.votes || 0) * 6 + (u.event_count || 0) * 12 + Math.round((u.student_count || 0) / 1000) * 2
+}
+
+const PODIUM = [
+  { ring: '#FFD700', glow: 'rgba(255,215,0,0.35)', label: 'Champion', emoji: '👑' },
+  { ring: '#C0C0C0', glow: 'rgba(192,192,192,0.30)', label: 'Vice-champion', emoji: '🥈' },
+  { ring: '#CD7F32', glow: 'rgba(205,127,50,0.30)', label: '3ᵉ place', emoji: '🥉' },
+]
+
+/* Carte podium (top 3) */
+function PodiumCard({ u, rank, voted, onVote }) {
+  const p = PODIUM[rank]
+  return (
+    <div className="relative rounded-2xl p-5 flex flex-col items-center text-center transition-all duration-500 hover:-translate-y-1.5"
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: `1px solid ${p.ring}55`,
+        boxShadow: `0 0 32px ${p.glow}`,
+        marginTop: rank === 0 ? 0 : 24,
+      }}>
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-extrabold"
+        style={{ background: p.ring, color: '#1a1a1a' }}>
+        #{rank + 1} · {p.label}
+      </div>
+      <div className="text-3xl mt-2 mb-1">{p.emoji}</div>
+      <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1.5 mb-3 shadow-lg">
+        {u.logo_url
+          ? <img src={u.logo_url} alt={u.short_name} className="w-full h-full object-contain" loading="lazy" />
+          : <span className="font-extrabold" style={{ color: u.color }}>{u.short_name.slice(0, 3)}</span>}
+      </div>
+      <Link to={`/universities/${u.id}`} className="font-extrabold text-white text-sm hover:text-purple-300 transition-colors">
+        {u.short_name}
+      </Link>
+      <p className="text-[11px] mt-0.5 mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>{u.city}</p>
+      <div className="flex items-baseline gap-1 mb-3">
+        <span className="text-2xl font-extrabold tabular-nums" style={{ color: p.ring }}>{campusScore(u).toLocaleString('fr')}</span>
+        <span className="text-[10px] uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.4)' }}>pts</span>
+      </div>
+      <VoteButton u={u} voted={voted} onVote={onVote} />
+    </div>
+  )
+}
+
+/* Ligne classement (#4+) */
+function RankRow({ u, rank, maxScore, voted, onVote }) {
+  const score = campusScore(u)
+  const pct = maxScore > 0 ? Math.max(6, (score / maxScore) * 100) : 6
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/[0.03]"
+      style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+      <span className="w-7 text-center font-mono font-bold text-sm flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        {rank + 1}
+      </span>
+      <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center overflow-hidden p-1 flex-shrink-0">
+        {u.logo_url
+          ? <img src={u.logo_url} alt={u.short_name} className="w-full h-full object-contain" loading="lazy" />
+          : <span className="text-[9px] font-extrabold" style={{ color: u.color }}>{u.short_name.slice(0, 3)}</span>}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <Link to={`/universities/${u.id}`} className="text-sm font-bold text-white truncate hover:text-purple-300 transition-colors">
+            {u.short_name} <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>· {u.city}</span>
+          </Link>
+          <span className="text-sm font-extrabold tabular-nums flex-shrink-0" style={{ color: u.color }}>
+            {score.toLocaleString('fr')}
+          </span>
+        </div>
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${u.color}, ${u.color}99)` }} />
+        </div>
+      </div>
+      <VoteButton u={u} voted={voted} onVote={onVote} compact />
+    </div>
+  )
+}
+
+/* Bouton de soutien */
+function VoteButton({ u, voted, onVote, compact }) {
+  return (
+    <button
+      onClick={() => onVote(u)}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-bold transition-all duration-200 flex-shrink-0
+                  ${compact ? 'px-2.5 py-1.5 text-[11px]' : 'px-4 py-2 text-xs w-full'}
+                  ${voted ? 'text-white' : 'text-white/80 hover:text-white'}`}
+      style={voted
+        ? { background: u.color, boxShadow: `0 4px 14px ${u.color}66` }
+        : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)' }}
+      title={voted ? 'Retirer mon soutien' : 'Soutenir ce campus'}
+    >
+      <Icon name="bolt" className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'}
+        style={voted ? { fill: 'currentColor' } : {}} />
+      {voted ? `Soutenu · ${u.votes}` : `Soutenir · ${u.votes}`}
+    </button>
+  )
+}
 
 /* ── Logo avec fallback couleur ── */
 function UniLogo({ u, size = 'sm' }) {
@@ -194,24 +299,69 @@ function UniCard({ u, index, visible, isAuthenticated }) {
 export default function Universities() {
   const [universities, setUniversities] = useState([])
   const [loading,      setLoading]      = useState(true)
-  const [view,         setView]         = useState('list') // 'list' | 'grid'
+  const [view,         setView]         = useState('list') // 'list' | 'grid' | 'ranking'
   const [search,       setSearch]       = useState('')
   const [cityFilter,   setCityFilter]   = useState('all')
+  const [myVotes,      setMyVotes]      = useState({})
   const [gridRef, gridVisible]          = useScrollReveal(0.02)
   const { isAuthenticated }             = useAuth()
 
   useEffect(() => {
     api.get('/universities').then(r => setUniversities(r.data)).finally(() => setLoading(false))
+    try { setMyVotes(JSON.parse(localStorage.getItem(VOTES_KEY) || '{}')) } catch { /* ignore */ }
   }, [])
 
-  const cities = ['all', ...Array.from(new Set(universities.map(u => u.city))).sort()]
+  /* ── Optimisation : listes dérivées mémoïsées ── */
+  const cities = useMemo(
+    () => ['all', ...Array.from(new Set(universities.map(u => u.city))).sort()],
+    [universities],
+  )
 
-  const filtered = universities.filter(u => {
-    const q = search.toLowerCase()
-    const matchSearch = !q || u.name.toLowerCase().includes(q) || u.short_name.toLowerCase().includes(q) || u.city.toLowerCase().includes(q)
-    const matchCity = cityFilter === 'all' || u.city === cityFilter
-    return matchSearch && matchCity
-  })
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return universities.filter(u => {
+      const matchSearch = !q || u.name.toLowerCase().includes(q) || u.short_name.toLowerCase().includes(q) || u.city.toLowerCase().includes(q)
+      const matchCity = cityFilter === 'all' || u.city === cityFilter
+      return matchSearch && matchCity
+    })
+  }, [universities, search, cityFilter])
+
+  const ranked = useMemo(
+    () => [...filtered].sort((a, b) => campusScore(b) - campusScore(a)),
+    [filtered],
+  )
+  const totalVotes = useMemo(
+    () => universities.reduce((s, u) => s + (u.votes || 0), 0),
+    [universities],
+  )
+
+  /* ── Vote « Battle des Campus » (visiteurs non connectés inclus) ── */
+  const handleVote = useCallback((u) => {
+    const voted = !!myVotes[u.id]
+    // MAJ optimiste du compteur + score
+    setUniversities(prev => prev.map(x =>
+      x.id === u.id ? { ...x, votes: Math.max(0, (x.votes || 0) + (voted ? -1 : 1)) } : x,
+    ))
+    const nextVotes = { ...myVotes }
+    if (voted) delete nextVotes[u.id]; else nextVotes[u.id] = true
+    setMyVotes(nextVotes)
+    try { localStorage.setItem(VOTES_KEY, JSON.stringify(nextVotes)) } catch { /* ignore */ }
+
+    const req = voted ? api.delete(`/universities/${u.id}/vote`) : api.post(`/universities/${u.id}/vote`)
+    req
+      .then(() => { if (!voted) toast.success(`Merci d'avoir soutenu ${u.short_name} ! ⚡`) })
+      .catch(() => {
+        // rollback
+        setUniversities(prev => prev.map(x =>
+          x.id === u.id ? { ...x, votes: Math.max(0, (x.votes || 0) + (voted ? 1 : -1)) } : x,
+        ))
+        setMyVotes(myVotes)
+        try { localStorage.setItem(VOTES_KEY, JSON.stringify(myVotes)) } catch { /* ignore */ }
+        toast.error('Vote non enregistré — réessayez')
+      })
+  }, [myVotes])
+
+  const maxScore = ranked.length ? campusScore(ranked[0]) : 0
 
   return (
     <div className="min-h-screen" style={{ background: '#0a0a0d' }}>
@@ -341,6 +491,16 @@ export default function Universities() {
                 <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
               </svg>
             </button>
+            <button
+              onClick={() => setView('ranking')}
+              className="px-3 py-2 transition-all"
+              style={view === 'ranking'
+                ? { background: 'rgba(245,158,11,0.22)', color: '#fbbf24' }
+                : { background: 'transparent', color: 'var(--v2-tx3)' }}
+              title="Battle des campus"
+            >
+              <Icon name="crown" className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
@@ -364,6 +524,56 @@ export default function Universities() {
           <div className="text-center py-20">
             <Icon name="graduation" className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--v2-tx3)' }} />
             <p style={{ color: 'var(--v2-tx2)' }}>Aucune université trouvée pour cette recherche.</p>
+          </div>
+        ) : view === 'ranking' ? (
+          /* ══ BATTLE DES CAMPUS ══ */
+          <div className="space-y-8">
+            {/* Bannière explicative */}
+            <div className="rounded-2xl p-5 sm:p-6 relative overflow-hidden"
+              style={{ background: 'linear-gradient(120deg, rgba(245,158,11,0.12), rgba(124,58,237,0.12))', border: '1px solid rgba(245,158,11,0.25)' }}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(245,158,11,0.2)' }}>
+                    <Icon name="crown" className="w-6 h-6" style={{ color: '#fbbf24' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
+                      Battle des Campus
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.2)', color: '#fbbf24' }}>NOUVEAU</span>
+                    </h2>
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                      Soutiens ton université d'un clic — pas besoin de compte. Le classement est mis à jour en direct.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl flex-shrink-0"
+                  style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Icon name="bolt" className="w-4 h-4" style={{ color: '#fbbf24', fill: '#fbbf24' }} />
+                  <span className="font-extrabold text-white tabular-nums">{totalVotes.toLocaleString('fr')}</span>
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>soutiens au total</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Podium top 3 */}
+            {ranked.length >= 3 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                {ranked.slice(0, 3).map((u, i) => (
+                  <PodiumCard key={u.id} u={u} rank={i} voted={!!myVotes[u.id]} onVote={handleVote} />
+                ))}
+              </div>
+            )}
+
+            {/* Reste du classement */}
+            {ranked.length > 3 && (
+              <div className="rounded-2xl p-3 space-y-1.5"
+                style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+                {ranked.slice(3).map((u, i) => (
+                  <RankRow key={u.id} u={u} rank={i + 3} maxScore={maxScore} voted={!!myVotes[u.id]} onVote={handleVote} />
+                ))}
+              </div>
+            )}
           </div>
         ) : view === 'list' ? (
           /* ══ VUE LISTE / TABLEAU ══ */
