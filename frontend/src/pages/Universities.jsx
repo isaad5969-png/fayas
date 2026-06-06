@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import { Icon } from '../components/Icons'
 import { useScrollReveal } from '../hooks/useScrollReveal'
@@ -297,14 +297,27 @@ function UniCard({ u, index, visible, isAuthenticated }) {
    PAGE PRINCIPALE
 ════════════════════════════════════ */
 export default function Universities() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialView = ['list', 'grid', 'ranking'].includes(searchParams.get('view')) ? searchParams.get('view') : 'list'
+
   const [universities, setUniversities] = useState([])
   const [loading,      setLoading]      = useState(true)
-  const [view,         setView]         = useState('list') // 'list' | 'grid' | 'ranking'
+  const [view,         setViewState]    = useState(initialView) // 'list' | 'grid' | 'ranking'
   const [search,       setSearch]       = useState('')
   const [cityFilter,   setCityFilter]   = useState('all')
   const [myVotes,      setMyVotes]      = useState({})
   const [gridRef, gridVisible]          = useScrollReveal(0.02)
   const { isAuthenticated }             = useAuth()
+
+  /* Vue synchronisée avec l'URL (?view=ranking) → lien partageable */
+  const setView = useCallback((v) => {
+    setViewState(v)
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev)
+      if (v === 'list') p.delete('view'); else p.set('view', v)
+      return p
+    }, { replace: true })
+  }, [setSearchParams])
 
   useEffect(() => {
     api.get('/universities').then(r => setUniversities(r.data)).finally(() => setLoading(false))
