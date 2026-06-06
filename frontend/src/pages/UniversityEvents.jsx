@@ -32,6 +32,20 @@ import { useAuth } from '../context/AuthContext'
 import { Icon } from '../components/Icons'
 import toast from 'react-hot-toast'
 
+/* Éclaircit (percent > 0) ou assombrit (percent < 0) une couleur hex */
+function shade(hex, percent) {
+  const h = (hex || '#7C3AED').replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  const num = parseInt(full, 16)
+  let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255
+  const t = percent < 0 ? 0 : 255
+  const p = Math.abs(percent) / 100
+  r = Math.round((t - r) * p) + r
+  g = Math.round((t - g) * p) + g
+  b = Math.round((t - b) * p) + b
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`
+}
+
 const ORG_LEVELS = {
   rookie: { label: 'Rookie',  color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',           emoji: '🌱', desc: '1er événement'  },
   pro:    { label: 'Pro',     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',         emoji: '⭐', desc: 'Organisateur confirmé' },
@@ -301,10 +315,17 @@ export default function UniversityEvents() {
             }
           }}
         />
-        {/* University color overlay */}
-        <div className="absolute inset-0" style={{ background: `${uniColor}c0` }} />
+        {/* Themed gradient — diagonal blend unique to each university */}
+        <div className="absolute inset-0" style={{
+          background: `linear-gradient(135deg, ${shade(uniColor, 18)} 0%, ${uniColor} 42%, ${shade(uniColor, -50)} 100%)`,
+          opacity: 0.93,
+        }} />
+        {/* Soft radial glow in the university tint */}
+        <div className="absolute inset-0" style={{
+          background: `radial-gradient(120% 80% at 20% 0%, ${shade(uniColor, 35)}66 0%, transparent 55%)`,
+        }} />
         {/* Gradient scrim — darkens bottom for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
         {/* Subtle dot grid pattern */}
         <div className="absolute inset-0 opacity-[0.08]" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.9) 1px, transparent 0)',
@@ -317,11 +338,11 @@ export default function UniversityEvents() {
             <img src={university.logo_url} alt="" className="w-full h-full object-contain" />
           </div>
         )}
-        {/* Blobs */}
+        {/* Blobs — lighter tint top-right, darker shade bottom-left */}
         <div className="absolute top-0 right-0 w-72 h-72 rounded-full -translate-y-1/2 translate-x-1/3"
-          style={{ background: `${uniColor}40`, filter: 'blur(40px)' }} />
+          style={{ background: `${shade(uniColor, 40)}55`, filter: 'blur(40px)' }} />
         <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full translate-y-1/3 -translate-x-1/4"
-          style={{ background: 'rgba(0,0,0,0.3)', filter: 'blur(30px)' }} />
+          style={{ background: `${shade(uniColor, -55)}66`, filter: 'blur(30px)' }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-up">
           <Link to="/universities"
