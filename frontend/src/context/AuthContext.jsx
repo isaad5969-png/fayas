@@ -46,6 +46,19 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
+  const requestPhoneOtp = async (phone) => {
+    const { data } = await api.post('/auth/phone/request-otp', { phone })
+    return data // { message, demo_code? }
+  }
+
+  const verifyPhoneOtp = async (phone, code, name) => {
+    const { data } = await api.post('/auth/phone/verify-otp', { phone, code, name })
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    setUser(data.user)
+    return data.user
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -57,7 +70,7 @@ export function AuthProvider({ children }) {
       user, loading,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
-      login, register, googleLogin, logout
+      login, register, googleLogin, requestPhoneOtp, verifyPhoneOtp, logout
     }}>
       {children}
     </AuthContext.Provider>

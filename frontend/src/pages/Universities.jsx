@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect, memo } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import { Icon } from '../components/Icons'
@@ -23,11 +23,40 @@ const PODIUM = [
   { ring: '#CD7F32', glow: 'rgba(205,127,50,0.30)', label: '3ᵉ place', emoji: '🥉' },
 ]
 
+/* ── Hook FLIP : anime en douceur le repositionnement des éléments [data-flip-id] ── */
+function useFlip(deps) {
+  const ref = useRef(null)
+  const prev = useRef(new Map())
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const nodes = el.querySelectorAll('[data-flip-id]')
+    nodes.forEach(node => {
+      const id = node.getAttribute('data-flip-id')
+      const rect = node.getBoundingClientRect()
+      const old = prev.current.get(id)
+      if (old && !reduce && typeof node.animate === 'function') {
+        const dx = old.left - rect.left
+        const dy = old.top - rect.top
+        if (dx || dy) {
+          node.animate(
+            [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0,0)' }],
+            { duration: 420, easing: 'cubic-bezier(.22,.61,.36,1)' },
+          )
+        }
+      }
+      prev.current.set(id, rect)
+    })
+  }, deps) // eslint-disable-line react-hooks/exhaustive-deps
+  return ref
+}
+
 /* Carte podium (top 3) */
-function PodiumCard({ u, rank, voted, onVote }) {
+const PodiumCard = memo(function PodiumCard({ u, rank, voted, onVote }) {
   const p = PODIUM[rank]
   return (
-    <div className="relative rounded-2xl p-5 flex flex-col items-center text-center transition-all duration-500 hover:-translate-y-1.5"
+    <div data-flip-id={u.id} className="relative rounded-2xl p-5 flex flex-col items-center text-center transition-all duration-500 hover:-translate-y-1.5"
       style={{
         background: 'rgba(255,255,255,0.03)',
         border: `1px solid ${p.ring}55`,
@@ -55,14 +84,14 @@ function PodiumCard({ u, rank, voted, onVote }) {
       <VoteButton u={u} voted={voted} onVote={onVote} />
     </div>
   )
-}
+})
 
 /* Ligne classement (#4+) */
-function RankRow({ u, rank, maxScore, voted, onVote }) {
+const RankRow = memo(function RankRow({ u, rank, maxScore, voted, onVote }) {
   const score = campusScore(u)
   const pct = maxScore > 0 ? Math.max(6, (score / maxScore) * 100) : 6
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/[0.03]"
+    <div data-flip-id={u.id} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/[0.03]"
       style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
       <span className="w-7 text-center font-mono font-bold text-sm flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
         {rank + 1}
@@ -89,19 +118,23 @@ function RankRow({ u, rank, maxScore, voted, onVote }) {
       <VoteButton u={u} voted={voted} onVote={onVote} compact />
     </div>
   )
-}
+})
 
 /* Bouton de soutien */
-function VoteButton({ u, voted, onVote, compact }) {
+const VoteButton = memo(function VoteButton({ u, voted, onVote, compact }) {
   return (
     <button
+      type="button"
       onClick={() => onVote(u)}
+      aria-pressed={voted}
+      aria-label={voted ? `Retirer mon soutien à ${u.short_name}` : `Soutenir ${u.short_name}`}
       className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-bold transition-all duration-200 flex-shrink-0
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent
                   ${compact ? 'px-2.5 py-1.5 text-[11px]' : 'px-4 py-2 text-xs w-full'}
                   ${voted ? 'text-white' : 'text-white/80 hover:text-white'}`}
       style={voted
-        ? { background: u.color, boxShadow: `0 4px 14px ${u.color}66` }
-        : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)' }}
+        ? { background: u.color, boxShadow: `0 4px 14px ${u.color}66`, '--tw-ring-color': u.color }
+        : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', '--tw-ring-color': u.color }}
       title={voted ? 'Retirer mon soutien' : 'Soutenir ce campus'}
     >
       <Icon name="bolt" className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'}
@@ -109,7 +142,7 @@ function VoteButton({ u, voted, onVote, compact }) {
       {voted ? `Soutenu · ${u.votes}` : `Soutenir · ${u.votes}`}
     </button>
   )
-}
+})
 
 /* ── Logo avec fallback couleur ── */
 function UniLogo({ u, size = 'sm' }) {
@@ -309,6 +342,11 @@ export default function Universities() {
   const [gridRef, gridVisible]          = useScrollReveal(0.02)
   const { isAuthenticated }             = useAuth()
 
+  /* Refs pour un handler de vote stable (évite de re-render les 30 lignes) */
+  const myVotesRef = useRef({})   // intention locale courante
+  const syncedRef  = useRef({})   // dernier état confirmé côté serveur
+  const timersRef  = useRef({})   // debounce par université
+
   /* Vue synchronisée avec l'URL (?view=ranking) → lien partageable */
   const setView = useCallback((v) => {
     setViewState(v)
@@ -321,7 +359,13 @@ export default function Universities() {
 
   useEffect(() => {
     api.get('/universities').then(r => setUniversities(r.data)).finally(() => setLoading(false))
-    try { setMyVotes(JSON.parse(localStorage.getItem(VOTES_KEY) || '{}')) } catch { /* ignore */ }
+    let v = {}
+    try { v = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}') } catch { /* ignore */ }
+    setMyVotes(v)
+    myVotesRef.current = v
+    syncedRef.current = { ...v }   // ces votes sont déjà comptés côté serveur (sessions précédentes)
+    const timers = timersRef.current
+    return () => { Object.values(timers).forEach(clearTimeout) }
   }, [])
 
   /* ── Optimisation : listes dérivées mémoïsées ── */
@@ -348,33 +392,60 @@ export default function Universities() {
     [universities],
   )
 
-  /* ── Vote « Battle des Campus » (visiteurs non connectés inclus) ── */
-  const handleVote = useCallback((u) => {
-    const voted = !!myVotes[u.id]
-    // MAJ optimiste du compteur + score
-    setUniversities(prev => prev.map(x =>
-      x.id === u.id ? { ...x, votes: Math.max(0, (x.votes || 0) + (voted ? -1 : 1)) } : x,
-    ))
-    const nextVotes = { ...myVotes }
-    if (voted) delete nextVotes[u.id]; else nextVotes[u.id] = true
-    setMyVotes(nextVotes)
-    try { localStorage.setItem(VOTES_KEY, JSON.stringify(nextVotes)) } catch { /* ignore */ }
+  /* ── Réseau différé : ne synchronise que le changement NET vs serveur ── */
+  const settleVote = useCallback((id, shortName) => {
+    const desired = !!myVotesRef.current[id]
+    const synced  = !!syncedRef.current[id]
+    if (desired === synced) return // allers-retours annulés → aucune requête
 
-    const req = voted ? api.delete(`/universities/${u.id}/vote`) : api.post(`/universities/${u.id}/vote`)
+    const req = desired ? api.post(`/universities/${id}/vote`) : api.delete(`/universities/${id}/vote`)
     req
-      .then(() => { if (!voted) toast.success(`Merci d'avoir soutenu ${u.short_name} ! ⚡`) })
+      .then(res => {
+        syncedRef.current[id] = desired
+        // Compteur calé sur la valeur autoritaire du serveur (auto-correction)
+        if (res?.data && typeof res.data.votes === 'number') {
+          setUniversities(prev => prev.map(x => x.id === id ? { ...x, votes: res.data.votes } : x))
+        }
+        if (desired) toast.success(`Merci d'avoir soutenu ${shortName} ! ⚡`)
+      })
       .catch(() => {
-        // rollback
+        // Retour à l'état confirmé serveur
+        const baseline = !!syncedRef.current[id]
+        const nv = { ...myVotesRef.current }
+        if (baseline) nv[id] = true; else delete nv[id]
+        myVotesRef.current = nv
+        setMyVotes(nv)
+        try { localStorage.setItem(VOTES_KEY, JSON.stringify(nv)) } catch { /* ignore */ }
         setUniversities(prev => prev.map(x =>
-          x.id === u.id ? { ...x, votes: Math.max(0, (x.votes || 0) + (voted ? 1 : -1)) } : x,
+          x.id === id ? { ...x, votes: Math.max(0, (x.votes || 0) + (desired ? -1 : 1)) } : x,
         ))
-        setMyVotes(myVotes)
-        try { localStorage.setItem(VOTES_KEY, JSON.stringify(myVotes)) } catch { /* ignore */ }
         toast.error('Vote non enregistré — réessayez')
       })
-  }, [myVotes])
+  }, [])
+
+  /* ── Vote « Battle des Campus » — handler stable, MAJ optimiste + debounce ── */
+  const handleVote = useCallback((u) => {
+    const desired = !myVotesRef.current[u.id]
+    // 1) MAJ optimiste immédiate du compteur
+    setUniversities(prev => prev.map(x =>
+      x.id === u.id ? { ...x, votes: Math.max(0, (x.votes || 0) + (desired ? 1 : -1)) } : x,
+    ))
+    // 2) bascule de l'intention locale (+ ref + localStorage)
+    const next = { ...myVotesRef.current }
+    if (desired) next[u.id] = true; else delete next[u.id]
+    myVotesRef.current = next
+    setMyVotes(next)
+    try { localStorage.setItem(VOTES_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+    // 3) synchro réseau différée (380 ms) — réconcilie le net
+    clearTimeout(timersRef.current[u.id])
+    timersRef.current[u.id] = setTimeout(() => settleVote(u.id, u.short_name), 380)
+  }, [settleVote])
 
   const maxScore = ranked.length ? campusScore(ranked[0]) : 0
+
+  /* Animation fluide du repositionnement (FLIP) lors du re-classement */
+  const podiumFlipRef = useFlip([ranked, view])
+  const listFlipRef   = useFlip([ranked, view])
 
   return (
     <div className="min-h-screen" style={{ background: '#0a0a0d' }}>
@@ -571,7 +642,7 @@ export default function Universities() {
 
             {/* Podium top 3 */}
             {ranked.length >= 3 && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+              <div ref={podiumFlipRef} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                 {ranked.slice(0, 3).map((u, i) => (
                   <PodiumCard key={u.id} u={u} rank={i} voted={!!myVotes[u.id]} onVote={handleVote} />
                 ))}
@@ -580,7 +651,7 @@ export default function Universities() {
 
             {/* Reste du classement */}
             {ranked.length > 3 && (
-              <div className="rounded-2xl p-3 space-y-1.5"
+              <div ref={listFlipRef} className="rounded-2xl p-3 space-y-1.5"
                 style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
                 {ranked.slice(3).map((u, i) => (
                   <RankRow key={u.id} u={u} rank={i + 3} maxScore={maxScore} voted={!!myVotes[u.id]} onVote={handleVote} />

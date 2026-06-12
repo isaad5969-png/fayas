@@ -434,7 +434,7 @@ export default function Home() {
           }} />
         </div>
 
-        <NightlifeIntro3D active={true} />
+        <NightlifeIntro3D active={true} events={upcomingEvents} />
 
         {/* Floor glow */}
         <div className="hero-floor-v2" aria-hidden="true" />
@@ -570,7 +570,7 @@ export default function Home() {
       {/* ══════════════════════════════════
           CITIES  — Bento Grid PREMIUM
       ══════════════════════════════════ */}
-      <CitiesSection visible={citiesVisible} sectionRef={citiesRef} onCityClick={(name) => navigate(`/events?city=${encodeURIComponent(name)}`)} />
+      <CitiesSection visible={citiesVisible} sectionRef={citiesRef} onCityClick={(name) => navigate(`/city/${encodeURIComponent(name)}`)} />
 
       {/* ══════════════════════════════════
           UPCOMING EVENTS — V2
@@ -771,8 +771,18 @@ export default function Home() {
             </div>
 
             {/* ── Right: Phone mockup ── */}
-            <div className={`relative flex-shrink-0 transition-all duration-700 delay-200
-                             ${appVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95'}`}>
+            <div
+              className="relative flex-shrink-0"
+              style={{
+                opacity: appVisible ? 1 : 0,
+                transform: appVisible
+                  ? 'perspective(1400px) rotateY(0deg) rotateX(0deg) translateY(0) scale(1)'
+                  : 'perspective(1400px) rotateY(-16deg) rotateX(7deg) translateY(44px) scale(0.92)',
+                transition: 'opacity 0.9s ease, transform 1.15s cubic-bezier(0.16, 1, 0.3, 1)',
+                transitionDelay: appVisible ? '0.15s' : '0s',
+                transformStyle: 'preserve-3d',
+                willChange: 'transform, opacity',
+              }}>
 
               {/* Wireframe globe decoration */}
               <div className="absolute -top-12 -left-14 pointer-events-none animate-float-slow opacity-60 dark:opacity-40">
@@ -802,7 +812,7 @@ export default function Home() {
               <div className="absolute inset-0 -m-8 bg-violet-500/15 dark:bg-violet-500/20 blur-3xl rounded-full pointer-events-none" />
 
               {/* Phone frame */}
-              <div className="relative w-[248px]" style={{ filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.45))' }}>
+              <div className="relative w-[248px] animate-float-slow" style={{ filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.45))' }}>
                 {/* Side buttons */}
                 <div className="absolute -left-[3px] top-[90px] w-[3px] h-7 rounded-l-full bg-gray-700" />
                 <div className="absolute -left-[3px] top-[126px] w-[3px] h-7 rounded-l-full bg-gray-700" />
@@ -829,68 +839,141 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Greeting */}
-                    <div className="px-5 pt-2 pb-3">
-                      <p className="text-white/40 text-[10px]">C'est le 26 Mai</p>
-                      <p className="text-[13px] font-extrabold" style={{ color: '#a78bfa' }}>Bonjour Amine Benkeroum</p>
+                    {/* Header : greeting + wallet FayasCoins + notif */}
+                    <div className="flex items-center justify-between px-4 pt-1.5 pb-2.5">
+                      <div>
+                        <p className="text-white/35 text-[9px]">Mercredi 26 Mai</p>
+                        <p className="text-[13px] font-extrabold text-white">Salut, Amine 👋</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-extrabold"
+                              style={{ background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }}>
+                          <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" fill="currentColor"><path d="M12 2l2.4 6.9H22l-6 4.4 2.3 7L12 16.9 5.7 20.3 8 13.3l-6-4.4h7.6z"/></svg>
+                          2 450
+                        </span>
+                        <div className="relative w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white text-[7px] font-bold flex items-center justify-center">3</span>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Category pills */}
-                    <div className="flex gap-2 px-4 mb-4 overflow-hidden">
-                      {['Tous', 'Électronique', 'Art et culture'].map((t, i) => (
-                        <span key={t} className="text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0"
-                              style={i === 0
-                                ? { background: '#7c3aed', color: 'white' }
-                                : { color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                          {t}
-                        </span>
+                    {/* Recherche + scan QR */}
+                    <div className="mx-4 mb-3 flex items-center gap-2 px-3 h-8 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+                      <span className="text-[9px] text-white/30 flex-1 truncate">Rechercher une soirée…</span>
+                      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M6 12h12"/></svg>
+                    </div>
+
+                    {/* Stories : EN DIRECT + villes */}
+                    <div className="flex gap-2.5 px-4 mb-3 overflow-hidden">
+                      {[
+                        { label: 'EN DIRECT', live: true,  img: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=100&q=60' },
+                        { label: 'Casa',      live: false, img: 'https://images.unsplash.com/photo-1538230575309-59dfc388ae36?auto=format&fit=crop&w=100&q=60' },
+                        { label: 'Marrakech', live: false, img: 'https://images.unsplash.com/photo-1708823081494-3e5bbd2ce931?auto=format&fit=crop&w=100&q=60' },
+                        { label: 'Rabat',     live: false, img: 'https://images.unsplash.com/photo-1763838546027-5ea880df8fbe?auto=format&fit=crop&w=100&q=60' },
+                        { label: 'Tanger',    live: false, img: 'https://images.unsplash.com/photo-1582919534700-acf2374f10d3?auto=format&fit=crop&w=100&q=60' },
+                      ].map(s => (
+                        <div key={s.label} className="flex flex-col items-center gap-1 flex-shrink-0">
+                          <div className="w-11 h-11 rounded-full p-[2px]"
+                               style={{ background: s.live ? 'linear-gradient(135deg,#f43f5e,#f59e0b)' : 'linear-gradient(135deg,#7c3aed,#22d3ee)' }}>
+                            <img src={s.img} alt={s.label} loading="lazy" className="w-full h-full rounded-full object-cover" style={{ border: '2px solid #070710' }} />
+                          </div>
+                          <span className={`text-[6.5px] font-bold ${s.live ? 'text-rose-400' : 'text-white/45'}`}>{s.label}</span>
+                        </div>
                       ))}
                     </div>
 
-                    {/* Event card in phone */}
+                    {/* Carte événement enrichie */}
                     <div className="mx-4 rounded-2xl overflow-hidden" style={{ background: '#13131a', border: '1px solid rgba(255,255,255,0.07)' }}>
                       <div className="relative">
                         <img
                           src="https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=400&q=70"
                           alt="gala"
                           className="w-full object-cover"
-                          style={{ height: '110px' }}
+                          style={{ height: '96px' }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                         <span className="absolute top-2 left-2 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
                               style={{ background: 'rgba(124,58,237,0.85)', color: 'white' }}>Gala</span>
+                        <span className="absolute top-2 right-2 flex items-center gap-1 text-[8px] font-bold px-1.5 py-0.5 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> 87% rempli
+                        </span>
                       </div>
                       <div className="p-3">
-                        <p className="text-red-400 text-[10px] font-bold mb-0.5">15 Juin 2026</p>
+                        <p className="text-red-400 text-[10px] font-bold mb-0.5">15 Juin 2026 · 20:00</p>
                         <p className="text-white text-[12px] font-extrabold leading-tight">Gala de Luxe Casablanca</p>
                         <p className="text-white/40 text-[9px] mt-0.5">📍 Four Seasons · Casablanca</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="font-extrabold text-[13px]" style={{ color: '#a78bfa' }}>500 MAD</p>
+
+                        {/* Social proof + jauge live */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex -space-x-1.5">
+                            {['#7c3aed', '#ec4899', '#22d3ee'].map((cc, i) => (
+                              <div key={i} className="w-4 h-4 rounded-full" style={{ background: `linear-gradient(135deg, ${cc}, #1a1a24)`, border: '1.5px solid #13131a' }} />
+                            ))}
+                          </div>
+                          <span className="text-[8px] text-white/45 font-medium">+12 amis y vont</span>
+                        </div>
+                        <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                          <div className="h-full rounded-full" style={{ width: '87%', background: 'linear-gradient(90deg,#f43f5e,#f59e0b)' }} />
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2.5">
+                          <p className="font-extrabold text-[13px]" style={{ color: '#a78bfa' }}>500 <span className="text-[9px]">MAD</span></p>
                           <span className="text-white text-[10px] font-bold px-2.5 py-1 rounded-full"
                                 style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}>Réserver</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Second card peek */}
-                    <div className="mx-4 mt-2.5 rounded-2xl overflow-hidden opacity-50"
-                         style={{ background: '#13131a', height: '52px' }}>
-                      <img
-                        src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=400&q=60"
-                        alt="festival"
-                        className="w-full h-full object-cover"
-                      />
+                    {/* E-billet digital (QR · sans contact) */}
+                    <div className="mx-4 mt-2.5 flex items-center gap-2.5 p-2.5 rounded-2xl"
+                         style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.20), rgba(34,211,238,0.10))', border: '1px solid rgba(124,58,237,0.30)' }}>
+                      <div className="w-10 h-10 rounded-lg bg-white p-1 flex-shrink-0">
+                        <svg viewBox="0 0 29 29" className="w-full h-full">
+                          <g fill="#0b0b14"><rect x="0" y="0" width="9" height="9"/><rect x="20" y="0" width="9" height="9"/><rect x="0" y="20" width="9" height="9"/></g>
+                          <g fill="#ffffff"><rect x="2" y="2" width="5" height="5"/><rect x="22" y="2" width="5" height="5"/><rect x="2" y="22" width="5" height="5"/></g>
+                          <g fill="#0b0b14">
+                            <rect x="3" y="3" width="3" height="3"/><rect x="23" y="3" width="3" height="3"/><rect x="3" y="23" width="3" height="3"/>
+                            <rect x="11" y="1" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/><rect x="15" y="1" width="1" height="1"/><rect x="17" y="3" width="1" height="1"/>
+                            <rect x="1" y="11" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/>
+                            <rect x="11" y="11" width="2" height="2"/><rect x="14" y="13" width="2" height="2"/><rect x="17" y="11" width="2" height="2"/><rect x="20" y="12" width="2" height="2"/><rect x="23" y="14" width="2" height="2"/><rect x="26" y="11" width="2" height="2"/>
+                            <rect x="12" y="16" width="1" height="1"/><rect x="15" y="17" width="2" height="2"/><rect x="19" y="16" width="1" height="1"/><rect x="22" y="18" width="2" height="2"/><rect x="25" y="22" width="2" height="2"/>
+                            <rect x="11" y="20" width="1" height="1"/><rect x="13" y="22" width="2" height="2"/><rect x="16" y="24" width="1" height="1"/><rect x="18" y="22" width="1" height="1"/><rect x="20" y="25" width="2" height="2"/><rect x="12" y="26" width="3" height="1"/>
+                          </g>
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <p className="text-[10px] font-extrabold text-white">E-billet prêt</p>
+                        </div>
+                        <p className="text-[8px] text-white/45 leading-tight mt-0.5">Entrée sans contact · scannez à la porte</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-0.5 flex-shrink-0 px-1.5 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+                        <span className="text-[6.5px] text-white/45 font-semibold">Wallet</span>
+                      </div>
                     </div>
 
-                    {/* Bottom nav */}
-                    <div className="flex justify-around items-center px-4 pt-4 pb-5 mt-3 border-t border-white/[0.06]">
-                      {[
-                        { label: 'Accueil', active: true },
-                        { label: 'Carte',   active: false },
-                        { label: 'Mes billets', active: false },
-                        { label: 'Profil', active: false },
-                      ].map(n => (
-                        <div key={n.label} className="flex flex-col items-center gap-1">
+                    {/* Bottom nav avec FAB Scanner */}
+                    <div className="relative flex items-end justify-between px-5 pt-3 pb-4 mt-3 border-t border-white/[0.06]">
+                      {[{ label: 'Accueil', active: true }, { label: 'Carte', active: false }].map(n => (
+                        <div key={n.label} className="flex flex-col items-center gap-1 w-9">
+                          <div className={`w-1 h-1 rounded-full ${n.active ? 'bg-violet-500' : 'bg-transparent'}`} />
+                          <span className={`text-[8px] font-semibold ${n.active ? 'text-violet-400' : 'text-white/30'}`}>{n.label}</span>
+                        </div>
+                      ))}
+                      {/* FAB central : scan sans contact */}
+                      <div className="flex flex-col items-center -mt-6">
+                        <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                             style={{ background: 'linear-gradient(135deg,#7c3aed,#22d3ee)', boxShadow: '0 6px 16px rgba(124,58,237,0.5)' }}>
+                          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1.5"/></svg>
+                        </div>
+                        <span className="text-[7px] font-bold text-white/60 mt-0.5">Scanner</span>
+                      </div>
+                      {[{ label: 'Billets', active: false }, { label: 'Profil', active: false }].map(n => (
+                        <div key={n.label} className="flex flex-col items-center gap-1 w-9">
                           <div className={`w-1 h-1 rounded-full ${n.active ? 'bg-violet-500' : 'bg-transparent'}`} />
                           <span className={`text-[8px] font-semibold ${n.active ? 'text-violet-400' : 'text-white/30'}`}>{n.label}</span>
                         </div>

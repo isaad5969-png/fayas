@@ -32,67 +32,124 @@ function seeded(seed) {
   }
 }
 
-/* ─── Texture canvas premium ─── */
-function makeTexture(ev, idx) {
-  const W = 900, H = 1260
-  const cvs = document.createElement('canvas')
-  cvs.width = W; cvs.height = H
-  const c = cvs.getContext('2d')
+/* ─── Images de secours par type (Unsplash · CORS OK) ─── */
+const IMG_BY_TYPE = {
+  soiree:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80',
+  concert:    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1200&q=80',
+  gala:       'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=1200&q=80',
+  festival:   'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1200&q=80',
+  universite: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1200&q=80',
+}
+const imgFor = (ev) => ev.image_url || ev.image || IMG_BY_TYPE[ev.type] || IMG_BY_TYPE.soiree
+
+/* ─── Cache de chargement d'images (dé-duplique les URLs) ─── */
+const _imgCache = new Map()
+function loadImage(url) {
+  if (_imgCache.has(url)) return _imgCache.get(url)
+  const pr = new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'            // CORS → canvas non "tainted" (upload WebGL sûr)
+    img.onload  = () => resolve(img)
+    img.onerror = () => resolve(null)        // échec/CORS absent → on garde le fond procédural
+    img.src = url
+  })
+  _imgCache.set(url, pr)
+  return pr
+}
+
+/* ─── Dessine la face d'une carte : vraie photo + habillage premium ─── */
+function drawCardFace(c, W, H, ev, idx, img) {
   const p = getPal(ev.type)
   const rng = seeded(idx * 7919 + 31337)
   const rgb = (arr, a = 1) => `rgba(${arr[0]},${arr[1]},${arr[2]},${a})`
 
-  /* — fond sombre dégradé — */
-  const bg = c.createLinearGradient(0, 0, W * 0.7, H)
-  bg.addColorStop(0,   'rgb(4,4,12)')
-  bg.addColorStop(0.35, rgb(p.a, 0.55))
-  bg.addColorStop(0.65, rgb(p.b, 0.30))
-  bg.addColorStop(1,   'rgb(2,2,8)')
-  c.fillStyle = bg
-  c.fillRect(0, 0, W, H)
+  c.clearRect(0, 0, W, H)
 
-  /* — lignes diagonales fines — */
-  c.save()
-  c.globalAlpha = 0.07
-  c.strokeStyle = '#ffffff'
-  c.lineWidth = 1
-  for (let i = -H; i < W + H; i += 38) {
-    c.beginPath()
-    c.moveTo(i, 0)
-    c.lineTo(i + H, H)
-    c.stroke()
+  /* — 1 · Fond : vraie photo (cover) ou dégradé procédural — */
+  if (img) {
+    const iw = img.naturalWidth  || img.width  || W
+    const ih = img.naturalHeight || img.height || H
+    const scale = Math.max(W / iw, H / ih)
+    const dw = iw * scale, dh = ih * scale
+    c.drawImage(img, (W - dw) / 2, (H - dh) * 0.35, dw, dh)
+
+    /* color-grade « nightlife » vers la palette du type (duotone doux) */
+    c.save()
+    c.globalCompositeOperation = 'soft-light'
+    const grade = c.createLinearGradient(0, 0, W * 0.65, H)
+    grade.addColorStop(0,    rgb(p.a, 0.90))
+    grade.addColorStop(0.55, rgb(p.b, 0.50))
+    grade.addColorStop(1,    rgb(p.c, 0.70))
+    c.fillStyle = grade
+    c.fillRect(0, 0, W, H)
+    c.restore()
+
+    /* ombrage cinématique (clair en haut → noir en bas) */
+    c.save()
+    c.globalCompositeOperation = 'multiply'
+    const dk = c.createLinearGradient(0, 0, 0, H)
+    dk.addColorStop(0,    'rgba(9,7,18,0.30)')
+    dk.addColorStop(0.45, 'rgba(6,5,14,0.22)')
+    dk.addColorStop(1,    'rgba(2,2,8,0.94)')
+    c.fillStyle = dk
+    c.fillRect(0, 0, W, H)
+    c.restore()
+  } else {
+    const bg = c.createLinearGradient(0, 0, W * 0.7, H)
+    bg.addColorStop(0,    'rgb(4,4,12)')
+    bg.addColorStop(0.35, rgb(p.a, 0.55))
+    bg.addColorStop(0.65, rgb(p.b, 0.30))
+    bg.addColorStop(1,    'rgb(2,2,8)')
+    c.fillStyle = bg
+    c.fillRect(0, 0, W, H)
+
+    c.save()
+    c.globalAlpha = 0.07
+    c.strokeStyle = '#ffffff'
+    c.lineWidth = 1
+    for (let i = -H; i < W + H; i += 38) {
+      c.beginPath(); c.moveTo(i, 0); c.lineTo(i + H, H); c.stroke()
+    }
+    c.restore()
   }
-  c.restore()
 
-  /* — spotlight central — */
-  const cx = W * 0.5, cy = H * 0.42
-  const sp = c.createRadialGradient(cx, cy, 0, cx, cy, W * 0.62)
-  sp.addColorStop(0,   rgb(p.a, 0.38))
-  sp.addColorStop(0.4, rgb(p.b, 0.18))
+  /* — 2 · Halo de projecteur (lumière de club) — */
+  c.save()
+  c.globalCompositeOperation = img ? 'screen' : 'source-over'
+  const cx = W * 0.5, cy = H * 0.36
+  const sp = c.createRadialGradient(cx, cy, 0, cx, cy, W * 0.66)
+  sp.addColorStop(0,   rgb(p.c, img ? 0.26 : 0.38))
+  sp.addColorStop(0.4, rgb(p.b, 0.15))
   sp.addColorStop(1,   'transparent')
   c.fillStyle = sp
   c.fillRect(0, 0, W, H)
+  c.restore()
 
-  /* — points lumineux noise — */
+  /* — 3 · Poussière lumineuse — */
   c.save()
-  for (let i = 0; i < 260; i++) {
-    const px = rng() * W, py = rng() * H
-    const pr = rng() * 1.8
+  if (img) c.globalCompositeOperation = 'screen'
+  const dust = img ? 90 : 240
+  for (let i = 0; i < dust; i++) {
+    const px = rng() * W, py = rng() * H, pr = rng() * 1.7
     const pal = [p.a, p.b, p.c][Math.floor(rng() * 3)]
-    c.globalAlpha = 0.08 + rng() * 0.18
+    c.globalAlpha = 0.06 + rng() * 0.16
     c.fillStyle = rgb(pal, 1)
     c.beginPath(); c.arc(px, py, pr, 0, Math.PI * 2); c.fill()
   }
   c.restore()
 
-  /* — grand cercle géométrique central — */
+  /* — 4 · Voiles haut + bas (lisibilité du texte) — */
   c.save()
-  c.globalAlpha = 0.10
-  c.strokeStyle = rgb(p.c, 1)
-  c.lineWidth = 2
-  c.beginPath(); c.arc(cx, cy, 260, 0, Math.PI * 2); c.stroke()
-  c.globalAlpha = 0.06
-  c.beginPath(); c.arc(cx, cy, 310, 0, Math.PI * 2); c.stroke()
+  const topScrim = c.createLinearGradient(0, 0, 0, H * 0.24)
+  topScrim.addColorStop(0, 'rgba(2,2,8,0.60)')
+  topScrim.addColorStop(1, 'transparent')
+  c.fillStyle = topScrim
+  c.fillRect(0, 0, W, H * 0.24)
+  const botScrim = c.createLinearGradient(0, H * 0.42, 0, H)
+  botScrim.addColorStop(0, 'transparent')
+  botScrim.addColorStop(1, 'rgba(2,2,8,0.96)')
+  c.fillStyle = botScrim
+  c.fillRect(0, H * 0.42, W, H * 0.58)
   c.restore()
 
   /* — badge type (top-left) — */
@@ -120,33 +177,34 @@ function makeTexture(ev, idx) {
   c.fillText(`${String((idx % 9) + 1).padStart(2, '0')}`, W - 36, 40)
   c.restore()
 
-  /* — titre de l'événement — */
+  /* — titre de l'événement (juste au-dessus du panneau) — */
   const rawTitle = (ev.title || 'FAYAS EVENT').replace(/[—–]/g, ' ')
   const words = rawTitle.split(/\s+/)
-  c.font = '900 78px Arial, sans-serif'
+  c.font = '900 76px Arial, sans-serif'
   const lines = []
   let line = ''
   words.forEach(w => {
     const test = line ? `${line} ${w}` : w
-    if (c.measureText(test).width > W - 80 && line) { lines.push(line); line = w }
+    if (c.measureText(test).width > W - 88 && line) { lines.push(line); line = w }
     else line = test
   })
   if (line) lines.push(line)
 
-  const titleTop = H * 0.30
+  const shown = lines.slice(0, 3)
+  const titleTop = (H - 260) - 32 - shown.length * 86
   c.save()
-  c.shadowColor = 'rgba(0,0,0,0.9)'
-  c.shadowBlur = 24
-  lines.slice(0, 3).forEach((l, li) => {
-    /* gradient text */
-    const tg = c.createLinearGradient(36, 0, W - 36, 0)
+  c.shadowColor = 'rgba(0,0,0,0.92)'
+  c.shadowBlur = 22
+  shown.forEach((l, li) => {
+    /* texte en dégradé */
+    const tg = c.createLinearGradient(40, 0, W - 40, 0)
     tg.addColorStop(0, '#ffffff')
-    tg.addColorStop(1, rgb(p.c, 0.85))
+    tg.addColorStop(1, rgb(p.c, 0.88))
     c.fillStyle = tg
-    c.font = '900 78px Arial, sans-serif'
+    c.font = '900 76px Arial, sans-serif'
     c.textAlign = 'left'
     c.textBaseline = 'top'
-    c.fillText(l, 40, titleTop + li * 90)
+    c.fillText(l, 40, titleTop + li * 86)
   })
   c.restore()
 
@@ -217,10 +275,35 @@ function makeTexture(ev, idx) {
   c.lineWidth = 3
   c.beginPath(); c.roundRect(3, 3, W - 6, H - 6, 30); c.stroke()
   c.restore()
+}
+
+/* ─── Texture d'une carte : rendu immédiat puis photo réelle ─── */
+function makeTexture(ev, idx) {
+  const W = 900, H = 1260
+  const cvs = document.createElement('canvas')
+  cvs.width = W; cvs.height = H
+  const c = cvs.getContext('2d')
+
+  drawCardFace(c, W, H, ev, idx, null)        // rendu immédiat → jamais de carte vide
 
   const tex = new THREE.CanvasTexture(cvs)
   tex.colorSpace = THREE.SRGBColorSpace
   tex.anisotropy = 16
+
+  const apply = (img) => {
+    if (!img) return
+    drawCardFace(c, W, H, ev, idx, img)       // recompose la carte avec la photo
+    tex.needsUpdate = true                    // met à jour map + emissiveMap
+  }
+  const alt = IMG_BY_TYPE[ev.type] || IMG_BY_TYPE.soiree
+  /* hôtes connus sans en-têtes CORS → on évite la requête vouée à l'échec */
+  const NO_CORS = /tidar\.ma/i
+  const url = NO_CORS.test(imgFor(ev)) ? alt : imgFor(ev)
+  loadImage(url).then(img => {
+    if (img) return apply(img)
+    /* photo bloquée (CORS/réseau) → photo de secours CORS-OK selon le type */
+    if (alt && alt !== url) loadImage(alt).then(apply)
+  })
   return tex
 }
 
@@ -235,14 +318,17 @@ function makeCard(ev, idx) {
   }
   geo.computeVertexNormals()
 
+  const tex = makeTexture(ev, idx)
   const mat = new THREE.MeshStandardMaterial({
-    map: makeTexture(ev, idx),
+    map: tex,
+    emissive: 0xffffff,
+    emissiveMap: tex,            // la carte rayonne sa propre photo → toujours lisible
+    emissiveIntensity: 0.34,
     roughness: 0.25,
     metalness: 0.18,
     transparent: true,
-    opacity: 0.94,
+    opacity: 0.96,
     side: THREE.DoubleSide,
-    envMapIntensity: 1.2,
   })
 
   const mesh = new THREE.Mesh(geo, mat)
@@ -274,9 +360,16 @@ export default function NightlifeIntro3D({ events = [], active = true }) {
     const mount = mountRef.current
     if (!mount || !active) return
 
+    /* ── Garde-fous performance / accessibilité ── */
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) return                       // pas d'animation 3D si l'utilisateur la refuse
+    const isSmall = window.innerWidth < 768
+    const maxCards = isSmall ? 5 : 10
+    const particleCount = isSmall ? 140 : 400
+
     /* ── Renderer ── */
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+    const renderer = new THREE.WebGLRenderer({ antialias: !isSmall, alpha: true, powerPreference: 'high-performance' })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isSmall ? 1 : 1.5))
     renderer.setClearColor(0x000000, 0)
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.35
@@ -317,7 +410,7 @@ export default function NightlifeIntro3D({ events = [], active = true }) {
       [-0.2, -1.4, -0.8],  [ 0.8,  1.4, -3.2],
       [-3.8,  1.2, -3.5],  [ 3.0, -0.4, -3.8],
     ]
-    const cards = evList.map((ev, i) => {
+    const cards = evList.slice(0, maxCards).map((ev, i) => {
       const mesh = makeCard(ev, i)
       const [x, y, z] = SPREAD[i % SPREAD.length]
       mesh.position.set(x, y, z)
@@ -329,7 +422,7 @@ export default function NightlifeIntro3D({ events = [], active = true }) {
     })
 
     /* ── Particules colorées ── */
-    const N = 400
+    const N = particleCount
     const pp = new Float32Array(N * 3)
     const pc = new Float32Array(N * 3)
     const pCols = [[0.49,0.23,0.93],[0.93,0.28,0.60],[0.13,0.83,0.94],[0.96,0.62,0.24],[0.38,0.82,0.60]]

@@ -295,23 +295,28 @@
       (function(){
         var loader = document.getElementById('app-loader');
         if (!loader) return;
-        var attempts = 0;
-        function check() {
-          attempts++;
-          var root = document.getElementById('root');
-          if (root && root.children && root.children.length > 0) {
-            loader.classList.add('hidden');
-            setTimeout(function(){ if (loader.parentNode) loader.parentNode.removeChild(loader); }, 500);
-          } else if (attempts < 100) { // max 10s
-            requestAnimationFrame(check);
-          }
+        var root = document.getElementById('root');
+        var done = false;
+        function hide() {
+          if (done) return;
+          done = true;
+          loader.classList.add('hidden');
+          setTimeout(function(){ if (loader.parentNode) loader.parentNode.removeChild(loader); }, 500);
         }
-        // Start checking after a tick
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', check);
-        } else {
-          check();
+        function mounted() {
+          return root && root.children && root.children.length > 0;
         }
+        if (mounted()) return hide();
+        // React can take >1.6s in dev (Vite compile) — observe #root instead of
+        // racing a fixed frame cap, so the loader never sticks on a slow mount.
+        if (window.MutationObserver && root) {
+          var obs = new MutationObserver(function(){
+            if (mounted()) { obs.disconnect(); hide(); }
+          });
+          obs.observe(root, { childList: true });
+        }
+        // Absolute safety net: never let the loader cover the app forever.
+        setTimeout(hide, 10000);
       })();
     </script>
   </body>

@@ -173,4 +173,61 @@ async function sendWelcomeEmail(user) {
   console.log(`[Email] Bienvenue envoyé → ${user.email}`);
 }
 
-module.exports = { sendPurchaseConfirmation, sendWelcomeEmail };
+async function sendPasswordResetEmail(user, resetUrl) {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.log('[Email] Réinitialisation MDP ignorée (GMAIL_USER/GMAIL_APP_PASSWORD manquants)');
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 20px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <tr>
+        <td style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:40px;text-align:center;">
+          <h1 style="color:#fff;margin:0;font-size:30px;font-weight:800;">◆ Fayas</h1>
+          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:13px;">Billetterie d'événements au Maroc</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:40px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:16px;">🔑</div>
+          <h2 style="color:#111827;margin:0 0 8px;font-size:22px;font-weight:700;">Réinitialisation du mot de passe</h2>
+          <p style="color:#6b7280;margin:0 0 24px;font-size:15px;line-height:1.6;">
+            Bonjour ${user.name},<br>
+            Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+          </p>
+          <a href="${resetUrl}"
+            style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:700;">
+            Réinitialiser mon mot de passe
+          </a>
+          <p style="color:#9ca3af;margin:24px 0 0;font-size:12px;">
+            Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas fait cette demande, ignorez cet email.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+          <p style="color:#9ca3af;margin:0;font-size:12px;">© 2025 Fayas — Billetterie d'événements au Maroc</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+  await transporter.sendMail({
+    from: `"Fayas Billetterie" <${process.env.GMAIL_USER}>`,
+    to: user.email,
+    subject: 'Réinitialisation de votre mot de passe — Fayas',
+    html,
+  });
+  console.log(`[Email] Réinitialisation MDP envoyée → ${user.email}`);
+}
+
+module.exports = { sendPurchaseConfirmation, sendWelcomeEmail, sendPasswordResetEmail };

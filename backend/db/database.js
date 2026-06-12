@@ -141,6 +141,22 @@ async function initSchema() {
         status       TEXT DEFAULT 'confirmed',
         purchased_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id         TEXT PRIMARY KEY,
+        user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token      TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used       BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS phone_otps (
+        phone      TEXT PRIMARY KEY,
+        code       TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        attempts   INTEGER DEFAULT 0
+      );
     `);
 
     /* ── indexes ── */
@@ -154,6 +170,8 @@ async function initSchema() {
       CREATE INDEX IF NOT EXISTS idx_tickets_event              ON tickets(event_id);
       CREATE INDEX IF NOT EXISTS idx_tickets_status_purchased   ON tickets(status, purchased_at DESC);
       CREATE INDEX IF NOT EXISTS idx_users_email                ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_prt_token                 ON password_reset_tokens(token);
+      CREATE INDEX IF NOT EXISTS idx_prt_user                  ON password_reset_tokens(user_id);
     `);
 
     /* ── migrations gracieuses ── */

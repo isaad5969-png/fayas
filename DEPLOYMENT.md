@@ -2,11 +2,54 @@
 
 ## Vue d'ensemble
 
+Deux options. **Option A** = tout sur Vercel (1 seul service). **Option B** = Vercel + Render (backend séparé).
+
+| Composant | Option A (tout Vercel) | Option B (Vercel + Render) |
+|-----------|------------------------|----------------------------|
+| Frontend  | Vercel | Vercel |
+| Backend (API) | Vercel (fonction serverless) | Render (serveur Node) |
+| Base de données | **Neon (obligatoire)** | Neon |
+
+> ⚠️ Dans les deux cas, **Neon (PostgreSQL) est requis**. En serverless il n'y a pas de processus permanent : la base in-memory (`pg-mem`) ne persiste pas.
+
+---
+
+## 🟢 Option A — Tout sur Vercel (recommandée ici)
+
+Le repo contient `vercel.json` + `api/index.js` qui exposent l'API Express en fonction serverless sous `/api`. Frontend et API vivent dans **un seul déploiement** (même domaine).
+
+1. **Base Neon** : créez un projet sur [neon.tech](https://neon.tech) → copiez la **Connection String** (utilisez l'endpoint `-pooler` recommandé pour le serverless).
+2. **Poussez sur GitHub** : `git push`.
+3. **Vercel** → [vercel.com](https://vercel.com) → **Add New Project** → importez le repo. Vercel détecte `vercel.json` (ne changez rien).
+4. **Variables d'environnement** dans Vercel :
+
+   | Nom | Valeur | Pour |
+   |-----|--------|------|
+   | `DATABASE_URL` | `postgresql://...-pooler.../db?sslmode=require` | API |
+   | `JWT_SECRET` | chaîne aléatoire longue (64+ car.) | API |
+   | `ALLOWED_ORIGINS` | `https://votre-projet.vercel.app` | API |
+   | `FRONTEND_URL` | `https://votre-projet.vercel.app` | API (liens reset) |
+   | `VITE_GOOGLE_CLIENT_ID` | client ID Google *(optionnel)* | Build front |
+   | `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` *(optionnel)* | Build front |
+   | `GOOGLE_CLIENT_ID` / `STRIPE_SECRET_KEY` / `GMAIL_*` / `SMS_PROVIDER` | *(optionnels)* | API |
+
+   > ❗ **NE définissez PAS `VITE_API_URL`** : l'API est sur le même domaine, le front appelle `/api` directement.
+
+5. **Deploy**. Vérifiez : `https://votre-projet.vercel.app/api/health` → `{"status":"ok",...}`.
+
+> Sans clés : **paiement** = mode démo (aucun débit), **OTP téléphone** = code affiché, **reset mot de passe** = lien renvoyé. Ajoutez les clés correspondantes pour passer en réel.
+
+---
+
+## 🔵 Option B — Vercel (frontend) + Render (backend)
+
 | Composant | Hébergement | Coût |
 |-----------|-------------|------|
 | Frontend  | Vercel      | Gratuit |
 | Backend   | Render      | Gratuit |
 | Base de données | Neon (PostgreSQL) | Gratuit |
+
+> Pour cette option, remplacez `vercel.json` par un build frontend simple (Root Directory `frontend`) et définissez `VITE_API_URL` vers l'URL Render. Étapes détaillées ci-dessous.
 
 ---
 
